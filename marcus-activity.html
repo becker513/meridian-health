@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Marcus Albright — Activity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F2EFE7;
+    --white: #FFFFFF;
+    --side-bg: #F2EFE7;
+    /* Unified surfaces — white cards with shadows */
+    --surface-1: #FFFFFF;
+    --surface-1-inset: #FAFAF6;    /* very subtle warm tint for nested insets */
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+    --shadow-inset: inset 0 1px 2px rgba(0,0,0,0.03);
+    --card-border: rgba(0,0,0,0.06);
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.12);
+    /* Unified text grays */
+    --text-primary: #000000;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+    --muted: #888;
+    /* Joseph Albers earth harmony — same chroma family */
+    --amber: #B58447;        /* warm honey-ochre */
+    --amber-bg: rgba(181,132,71,0.08);
+    --amber-border: rgba(181,132,71,0.30);
+    --green: #6B8F5A;        /* soft sage */
+    --green-bg: rgba(107,143,90,0.09);
+    --green-border: rgba(107,143,90,0.30);
+    --red: #A85F3D;          /* soft terracotta */
+    --red-bg: rgba(168,95,61,0.09);
+    --red-border: rgba(168,95,61,0.30);
+    --blue: #5B7A8C;         /* dusty slate (neutral fourth) */
+    --blue-bg: rgba(91,122,140,0.09);
+    --blue-border: rgba(91,122,140,0.30);
+    --serif: 'New York', ui-serif, 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', -apple-system, 'SF Pro Text', sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    /* 4px baseline grid — all line-heights & vertical rhythm snap to multiples */
+    --base: 4px;
+  }
+  body { line-height: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rise-large {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-right {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  html, body {
+    background: #fff;
+  }
+  body {
+    font-family: var(--sans);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ──────── APP SHELL ──────── */
+  .app {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ──────── LEFT SIDEBAR — v3 (radically simple) ──────── */
+  .sidebar {
+    width: 76px;
+    flex-shrink: 0;
+    background: var(--side-bg);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    padding: 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-self: stretch;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 60;
+    transition: width 0.45s var(--ease-spring), padding 0.4s var(--ease-spring);
+  }
+  .sidebar.expanded {
+    width: 272px;
+    padding: 16px 14px 16px;
+  }
+
+  /* Every row in the sidebar shares the same 44px height + flex layout.
+     Collapsed: icon centered. Expanded: icon left, label right. */
+  .sidebar .ws,
+  .sidebar .search,
+  .sidebar .nav-item,
+  .sidebar .pat-row,
+  .sidebar .me {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: #444;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.18s var(--ease-out);
+    overflow: hidden;
+  }
+  .sidebar:not(.expanded) .ws,
+  .sidebar:not(.expanded) .search,
+  .sidebar:not(.expanded) .nav-item,
+  .sidebar:not(.expanded) .pat-row,
+  .sidebar:not(.expanded) .me {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar .nav-item:hover,
+  .sidebar .pat-row:hover,
+  .sidebar .search:hover,
+  .sidebar .me:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .sidebar .nav-item.active { background: rgba(0,0,0,0.07); color: #000; }
+  .sidebar .pat-row.active { background: rgba(0,0,0,0.07); }
+
+  /* Workspace mark */
+  .ws { margin-bottom: 6px; }
+  .sidebar .ws:hover { background: rgba(0,0,0,0.05); }
+  .ws-mark {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .ws-name {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-left: 12px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .sidebar.expanded .ws-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .ws-name { display: none; }
+
+  .collapse-btn {
+    width: 32px; height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: opacity 0.2s var(--ease-out), background 0.18s, color 0.18s;
+  }
+  .collapse-btn svg { width: 16px; height: 16px; }
+  .collapse-btn:hover { background: rgba(0,0,0,0.06); color: #000; }
+  /* Collapsed: hidden, reveals on .ws hover */
+  .sidebar:not(.expanded) .collapse-btn { display: none; }
+  .sidebar:not(.expanded) .ws:hover .ws-mark { display: none; }
+  .sidebar:not(.expanded) .ws:hover .collapse-btn { display: flex; }
+
+  /* Search */
+  .search { margin-bottom: 6px; }
+  .search svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .search-input {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: #888;
+    margin-left: 12px;
+    flex: 1;
+    min-width: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .sidebar.expanded .search { background: rgba(0,0,0,0.05); }
+  .sidebar.expanded .search-input { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .search-input { display: none; }
+
+  /* Nav items */
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .nav-item.active svg { color: #000; }
+  .nav-label {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-left: 14px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .nav-label { display: none; }
+  .nav-item.active .nav-label { color: #000; font-weight: 600; }
+
+  /* Patient section — only in expanded state */
+  .pat-section {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar.expanded .pat-section { display: flex; }
+
+  .nav-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 14px -14px;
+  }
+  .section-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 0 12px 6px;
+  }
+
+  .pat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.55);
+    font-family: var(--serif);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .pat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pat-row.active .pat-avatar { background: #000; color: #fff; }
+  .pat-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pat-row.active .pat-name { color: #000; font-weight: 600; }
+  .pat-meta {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Dr. Chen at bottom */
+  .me-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 0 -12px 12px;
+    margin-top: auto;
+  }
+  .sidebar.expanded .me-divider { margin: 0 -14px 12px; margin-top: auto; }
+  .me .pat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  .me .pat-avatar img { border-radius: 50%; }
+  .me-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .me-name { display: none; }
+  .sidebar.expanded .me:hover {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .sidebar.expanded .me:hover .me-logout {
+    opacity: 1;
+    color: #000;
+  }
+  .me-logout {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, opacity 0.2s;
+  }
+  .sidebar.expanded .me-logout {
+    display: flex;
+    opacity: 0;
+  }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; }
+  .me-logout:hover { background: rgba(0,0,0,0.06); color: #000; }
+  .me-logout svg { width: 16px; height: 16px; }
+
+  /* Tooltips when collapsed */
+  .sidebar [data-tip] { position: relative; }
+  .sidebar [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    padding: 6px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-spring);
+    z-index: 200;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  }
+  .sidebar [data-tip]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .sidebar.expanded [data-tip]::after { display: none; }
+
+
+  /* ──────── MAIN ──────── */
+  .main {
+    flex: 1;
+    background: #fff;
+    padding: 56px 56px 220px;
+    min-width: 0;
+    transition: padding 0.5s var(--ease-spring);
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .main-inner {
+    width: 100%;
+    max-width: 960px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+
+  .header-text { min-width: 0; flex: 1; }
+  .patient-name {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+  }
+  .header-meta {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .header-meta .sep { color: rgba(0,0,0,0.22); }
+  .header-meta .next-visit { color: #1a1a1a; font-weight: 400; }
+  .intake-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--amber);
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 4px 12px;
+    margin: -4px -12px;
+    border-radius: 999px;
+    background: transparent;
+    transition: background 0.2s var(--ease-out);
+  }
+  .intake-link:hover { background: var(--amber-bg); }
+  .intake-icon,
+  .intake-wave,
+  .intake-pause {
+    width: 16px;
+    height: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .intake-icon svg,
+  .intake-pause svg { width: 13px; height: 13px; }
+  /* State 1: not playing → show play triangle */
+  .intake-link .intake-icon { display: inline-flex; }
+  /* State 2: playing → show wave */
+  .intake-link.playing .intake-icon { display: none; }
+  .intake-link.playing .intake-wave { display: inline-flex; gap: 2px; }
+  /* State 3: playing + hover → show pause */
+  .intake-link.playing:hover .intake-wave { display: none; }
+  .intake-link.playing:hover .intake-pause { display: inline-flex; }
+  .intake-wave span {
+    display: block;
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    border-radius: 1px;
+    transform-origin: center;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .intake-wave span:nth-child(1) { animation-delay: 0s;    transform: scaleY(0.4); }
+  .intake-wave span:nth-child(2) { animation-delay: 0.15s; transform: scaleY(0.8); }
+  .intake-wave span:nth-child(3) { animation-delay: 0.3s;  transform: scaleY(0.5); }
+  .intake-wave span:nth-child(4) { animation-delay: 0.45s; transform: scaleY(1);   }
+  .intake-wave span:nth-child(5) { animation-delay: 0.6s;  transform: scaleY(0.6); }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50%      { transform: scaleY(1); }
+  }
+
+  /* CTA top right — light white pill, hover swaps content via vertical slide */
+  .cta-primary {
+    flex-shrink: 0;
+    height: 60px;
+    padding: 6px 24px 6px 6px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition:
+      background 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+  .cta-primary:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+  .cta-primary .cta-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #eee;
+    flex-shrink: 0;
+  }
+  .cta-primary .cta-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Stack: default text + hover text — slide vertically */
+  .cta-stack {
+    position: relative;
+    height: 38px;
+    min-width: 124px;
+    overflow: hidden;
+  }
+  .cta-default,
+  .cta-hover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .cta-default {
+    transform: translateY(0);
+  }
+  .cta-hover {
+    transform: translateY(100%);
+    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .cta-primary:hover .cta-default { transform: translateY(-100%); }
+  .cta-primary:hover .cta-hover { transform: translateY(0); }
+  .cta-line {
+    font-size: 14px;
+    line-height: 18px;
+    color: #1a1a1a;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cta-line strong {
+    font-weight: 700;
+    color: #000;
+  }
+  .cta-hover-text {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: #000;
+  }
+  .cta-hover-arrow {
+    width: 18px;
+    height: 18px;
+    color: #000;
+  }
+  .cta-primary:active { transform: scale(0.99); }
+
+  /* Briefing card */
+  .briefing-card {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 56px 48px 60px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    animation: rise-large 0.55s var(--ease-out) 0.08s both;
+  }
+  /* Stat cards inside the briefing */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 22px;
+    padding: 22px 28px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 12px;
+  }
+  .stat-row-bottom {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    color: #000;
+  }
+  .stat-value .arrow {
+    font-family: var(--sans);
+    font-size: 0.62em;
+    font-weight: 300;
+    color: #000;
+    margin: 0 0.16em;
+    vertical-align: 0.32em;
+    display: inline-block;
+  }
+  .stat-value sup {
+    font-size: 14px;
+    vertical-align: super;
+    line-height: 0;
+    margin-left: 1px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: -0.1px;
+    color: var(--text-tertiary);
+  }
+  .stat-delta.up { color: var(--green); }
+
+  .briefing-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 14px;
+  }
+  .briefing-eyebrow .sep { margin: 0 6px; color: rgba(0,0,0,0.18); }
+  .briefing-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    font-weight: 400;
+  }
+  .visit-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 28px 32px;
+  }
+  .visit-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .visit-text {
+    font-size: 19px;
+    line-height: 28px;
+    color: #2a2a2a;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .visit-text + .visit-text { margin-top: 18px; }
+
+  /* Section above the rows */
+  .row-section {
+    margin-top: 36px;
+    animation: rise 0.5s var(--ease-out) 0.18s both;
+  }
+  .row-section-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .row-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* Row buttons — white cards with shadow lift on hover */
+  .row-btn {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  }
+  .row-btn:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+  .row-btn:hover .row-arrow { transform: translateX(3px); color: #000; }
+  .row-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .row-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .row-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .row-title {
+    font-size: 19px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.3px;
+  }
+  .row-meta {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 500;
+    color: #555;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+  .pill .num { letter-spacing: 0; margin-right: 3px; }
+  .pill.green { background: var(--green-bg); color: var(--green); }
+  .pill.amber { background: var(--amber-bg); color: var(--amber); }
+  .pill.red   { background: var(--red-bg); color: var(--red); }
+  .pill.gray  { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .row-arrow {
+    font-size: 22px;
+    color: #999;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.25s var(--ease-spring), color 0.18s;
+  }
+
+  /* ──────── RIGHT SIDE PANEL (PUSHES) ──────── */
+  .side-panel {
+    width: 0;
+    flex-shrink: 0;
+    background: #fff;
+    overflow: hidden;
+    transition: width 0.5s var(--ease-spring);
+  }
+  .app.panel-open .side-panel {
+    width: 460px;
+    border-left: 1px solid var(--card-border);
+  }
+  .side-inner {
+    width: 460px;
+    padding: 64px 44px 220px;
+    min-height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .side-inner::-webkit-scrollbar { display: none; }
+  .side-close {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+  }
+  .side-close:hover { background: rgba(0,0,0,0.05); color: #000; }
+  .side-close svg { width: 18px; height: 18px; }
+  .side-inner { position: relative; }
+
+  .side-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+    padding-left: 16px;
+  }
+  .side-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.4px;
+    margin-bottom: 32px;
+    padding-left: 16px;
+    font-weight: 400;
+  }
+  .side-title-meta {
+    display: inline-block;
+    margin-left: 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+  .side-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin: 0 0 16px;
+    padding-left: 16px;
+  }
+  /* Eyebrow style is consistent — color carries from item context */
+  .side-item.green .side-item-meta { color: var(--green); }
+  .side-item.amber .side-item-meta { color: var(--amber); }
+  .side-item.red   .side-item-meta { color: var(--red); }
+
+  .side-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition:
+      background 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      box-shadow 0.3s var(--ease-out),
+      transform 0.25s var(--ease-out);
+    margin-bottom: 6px;
+    cursor: pointer;
+    position: relative;
+  }
+  .side-item:hover {
+    background: #fff;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
+  .side-item-link {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.2s var(--ease-out), transform 0.25s var(--ease-spring), background 0.18s, color 0.18s;
+    pointer-events: none;
+  }
+  .side-item-link svg { width: 16px; height: 16px; stroke-width: 2; }
+  .side-item:hover .side-item-link {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: #000;
+  }
+  .side-item-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(0,0,0,0.025);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .side-item-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  /* Albers harmony — color carries through tile bg + border + stroke */
+  .side-item.green .side-item-icon {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+  .side-item.amber .side-item-icon {
+    background: var(--amber-bg);
+    border-color: var(--amber-border);
+    color: var(--amber);
+  }
+  .side-item.red .side-item-icon {
+    background: var(--red-bg);
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+  .side-item.blue .side-item-icon {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue);
+  }
+  .side-item-body { flex: 1; min-width: 0; padding-top: 0; }
+  .side-item-meta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  .side-item-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+  }
+  .side-item-text {
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #555;
+  }
+
+  .app.panel-open .side-eyebrow { animation: slide-right 0.4s var(--ease-out) 0.18s both; }
+  .app.panel-open .side-title { animation: slide-right 0.45s var(--ease-out) 0.22s both; }
+  .app.panel-open .side-section-label { animation: slide-right 0.4s var(--ease-out) 0.26s both; }
+  .app.panel-open .side-item { animation: slide-right 0.45s var(--ease-out) both; }
+  .app.panel-open .side-item:nth-child(4) { animation-delay: 0.30s; }
+  .app.panel-open .side-item:nth-child(5) { animation-delay: 0.34s; }
+  .app.panel-open .side-item:nth-child(6) { animation-delay: 0.38s; }
+  .app.panel-open .side-item:nth-child(7) { animation-delay: 0.42s; }
+  .app.panel-open .side-item:nth-child(8) { animation-delay: 0.46s; }
+  .app.panel-open .side-item:nth-child(9) { animation-delay: 0.50s; }
+  .app.panel-open .side-item:nth-child(10) { animation-delay: 0.54s; }
+
+  /* ──────── SEARCH MODAL ──────── */
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14vh;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .search-modal.open {
+    display: flex;
+    opacity: 1;
+  }
+  .search-modal-card {
+    width: 640px;
+    max-width: calc(100vw - 48px);
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(-12px) scale(0.98);
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .search-modal.open .search-modal-card { transform: translateY(0) scale(1); }
+  .search-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .search-modal-top svg.search-glass { width: 18px; height: 18px; color: #888; flex-shrink: 0; }
+  .search-modal-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--sans);
+    font-size: 18px;
+    color: #000;
+  }
+  .search-modal-input::placeholder { color: #aaa; }
+  .search-modal-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-modal-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+  .search-modal-close svg { width: 14px; height: 14px; }
+  .search-modal-list {
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+    scrollbar-width: none;
+  }
+  .search-modal-list::-webkit-scrollbar { display: none; }
+  .search-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 16px 14px 8px;
+  }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .search-row:hover { background: rgba(0,0,0,0.04); }
+  .search-row-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.05);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .search-row-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .search-row-icon svg { width: 16px; height: 16px; }
+  .search-row-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+  }
+  .search-row-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ──────── ASK BAR — centers under the main working area ──────── */
+  .cv-chat {
+    position: fixed;
+    bottom: 0;
+    left: 80px;        /* default: clear of collapsed sidebar */
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: 0 16px 20px;
+    transition: left 0.45s var(--ease-spring), right 0.5s var(--ease-spring);
+    animation: rise-large 0.6s var(--ease-out) 0.4s both;
+  }
+  /* When sidebar is expanded, push the chat bar right */
+  body:has(.sidebar.expanded) .cv-chat { left: 272px; }
+  /* When right side panel is open, pull the chat bar left */
+  body:has(.app.panel-open) .cv-chat { right: 460px; }
+  .cv-chat-panel {
+    pointer-events: auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    width: min(820px, calc(100vw - 32px));
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    transition:
+      width 0.5s var(--ease-spring),
+      height 0.5s var(--ease-spring),
+      border-radius 0.5s var(--ease-spring),
+      box-shadow 0.4s var(--ease-out),
+      transform 0.3s var(--ease-spring);
+    transform-origin: bottom center;
+  }
+  .cv-chat-panel.collapsed { border-radius: 22px; }
+  .cv-chat-content {
+    padding: 20px 22px 18px 26px;
+    transition: opacity 0.25s var(--ease-out), filter 0.25s var(--ease-out);
+  }
+  .cv-chat-collapsed-shell {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .cv-chat-panel.collapsed {
+    width: 260px;
+    height: 52px;
+    border-radius: 22px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  }
+  .cv-chat-panel.collapsed:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+  .cv-chat-panel.collapsed .cv-chat-content {
+    opacity: 0;
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .cv-chat-panel.collapsed .cv-chat-collapsed-shell {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.18s;
+  }
+  .cv-chat-collapsed-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 8px 8px 8px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    border-radius: 999px;
+    font-size: 15px;
+    color: #aaa;
+    font-weight: 400;
+  }
+  .cv-chat-collapsed-bar .ph {
+    flex: 1;
+    text-align: left;
+    color: #aaa;
+    transition: color 0.35s var(--ease-out);
+    position: relative;
+  }
+  .cv-chat-panel.collapsed:hover .cv-chat-collapsed-bar .ph {
+    color: #000;
+    animation: ph-shimmer 0.75s var(--ease-out) both;
+  }
+  @keyframes ph-shimmer {
+    0%   { color: #aaa; }
+    40%  { color: #cfcfcf; }
+    100% { color: #000; }
+  }
+  .cv-chat-collapsed-bar .send-mini {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-collapsed-bar .send-mini svg { width: 14px; height: 14px; }
+  .cv-chat-panel.collapsed:hover .send-mini { transform: scale(1.06); }
+  .cv-chat-scroll {
+    max-height: 192px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: none;
+  }
+  .cv-chat-scroll::-webkit-scrollbar { display: none; }
+  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-bubble {
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 92%;
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(0,0,0,0.05);
+    color: #000;
+  }
+  .cv-chat-bubble.assistant {
+    align-self: flex-start;
+    background: transparent;
+    color: #444;
+    border: 1px solid var(--border);
+  }
+  .cv-chat-input {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 6px 0 14px;
+    border: none;
+    background: transparent;
+    color: #000;
+    outline: none;
+  }
+  .cv-chat-input::placeholder { color: #aaa; }
+  .cv-chat-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cv-chat-icons { display: flex; align-items: center; gap: 14px; }
+  .cv-chat-icon {
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+  }
+  .cv-chat-icon:hover { color: #000; }
+  .cv-chat-icon svg { width: 20px; height: 20px; }
+  .cv-chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-send:hover { transform: scale(1.06); }
+  .cv-chat-send:active { transform: scale(0.94); }
+  .cv-chat-send svg { width: 16px; height: 16px; }
+  .cv-chat-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .cv-chat-chip {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s var(--ease-out);
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-chip:hover {
+    border-color: rgba(0,0,0,0.2);
+    color: #000;
+  }
+  .cv-chat-chip:active { transform: scale(0.97); }
+
+  /* ──────── ACTIVITY PAGE ──────── */
+  .page-header {
+    margin-bottom: 48px;
+    animation: rise-large 0.55s var(--ease-out) both;
+  }
+  .activity-month {
+    animation: rise 0.4s var(--ease-out) both;
+  }
+  .page-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .page-eyebrow a {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    margin: -6px -12px;
+    border-radius: 999px;
+    transition: background 0.2s var(--ease-out), color 0.18s, gap 0.25s var(--ease-spring);
+  }
+  .page-eyebrow a:hover {
+    color: #000;
+    background: rgba(0,0,0,0.04);
+    gap: 12px;
+  }
+  .page-eyebrow svg { width: 14px; height: 14px; }
+  .page-title {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .page-subtitle {
+    font-size: 19px;
+    line-height: 28px;
+    color: #555;
+    font-weight: 400;
+    max-width: 60ch;
+    letter-spacing: -0.2px;
+  }
+
+  /* Activity timeline */
+  /* Each month is a rounded card containing the entries for that month */
+  .activity-month-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 14px 14px 14px;
+    margin-bottom: 20px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+  .activity-month {
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.2px;
+    padding: 16px 18px 14px;
+  }
+  .activity-row {
+    display: flex;
+    gap: 32px;
+    padding: 22px 18px 24px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.22s var(--ease-out), padding-left 0.25s var(--ease-spring);
+    align-items: flex-start;
+    animation: rise 0.4s var(--ease-out) both;
+    position: relative;
+  }
+  .activity-row::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 18px;
+    right: 18px;
+    height: 1px;
+    background: rgba(0,0,0,0.05);
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .activity-month-card .activity-row:last-child::after { display: none; }
+  .activity-row:hover {
+    background: rgba(0,0,0,0.022);
+    padding-left: 24px;
+  }
+  .activity-row:hover::after { opacity: 0; }
+  /* Stagger the entrance — 30ms per row */
+  .activity-row:nth-of-type(1)  { animation-delay: 0.05s; }
+  .activity-row:nth-of-type(2)  { animation-delay: 0.08s; }
+  .activity-row:nth-of-type(3)  { animation-delay: 0.11s; }
+  .activity-row:nth-of-type(4)  { animation-delay: 0.14s; }
+  .activity-row:nth-of-type(5)  { animation-delay: 0.17s; }
+  .activity-row:nth-of-type(6)  { animation-delay: 0.20s; }
+  .activity-row:nth-of-type(7)  { animation-delay: 0.23s; }
+  .activity-row:nth-of-type(8)  { animation-delay: 0.26s; }
+  .activity-row:nth-of-type(9)  { animation-delay: 0.29s; }
+  .activity-row:nth-of-type(10) { animation-delay: 0.32s; }
+  .activity-row:nth-of-type(n+11) { animation-delay: 0.35s; }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-time {
+    width: 88px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .activity-date {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 20px;
+  }
+  .activity-clock {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    line-height: 20px;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .activity-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .activity-title {
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+  }
+  .activity-body {
+    font-size: 15px;
+    line-height: 24px;
+    color: #555;
+    font-weight: 400;
+    max-width: 64ch;
+    margin-bottom: 12px;
+  }
+  .activity-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .activity-tag {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .activity-tag::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+  .activity-tag.agent::before    { background: #1a1a1a; }
+  .activity-tag.watch::before    { background: var(--blue); }
+  .activity-tag.labs::before     { background: var(--green); }
+  .activity-tag.pharmacy::before { background: var(--amber); }
+  .activity-tag.flag::before     { background: var(--red); }
+
+  /* Activity views — list and detail crossfade in place */
+  .activity-list-view,
+  .activity-detail-view {
+    transition: opacity 0.35s var(--ease-out), transform 0.45s var(--ease-spring);
+  }
+  .activity-list-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .activity-detail-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 56px;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+  .main-inner {
+    position: relative;
+  }
+  .main-inner.detail-open .activity-list-view {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+  .main-inner.detail-open .activity-detail-view {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .ad-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 14px;
+    margin: 0 -14px 28px;
+    border-radius: 999px;
+    transition: background 0.2s var(--ease-out), color 0.18s, gap 0.25s var(--ease-spring);
+    font-family: var(--sans);
+  }
+  .ad-back:hover { background: rgba(0,0,0,0.04); color: #000; gap: 12px; }
+  .ad-back svg { width: 14px; height: 14px; }
+  .ad-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ad-eyebrow .sep { color: rgba(0,0,0,0.22); }
+  .ad-title {
+    font-family: var(--serif);
+    font-size: 42px;
+    line-height: 48px;
+    letter-spacing: -0.8px;
+    font-weight: 400;
+    margin-bottom: 36px;
+    max-width: 22ch;
+  }
+  .ad-body {
+    font-size: 19px;
+    line-height: 30px;
+    color: #2a2a2a;
+    font-weight: 400;
+    max-width: 60ch;
+    text-wrap: pretty;
+  }
+  .ad-body p { margin-bottom: 20px; }
+  .ad-body p:last-child { margin-bottom: 0; }
+  .ad-quote {
+    border-left: 3px solid var(--amber);
+    padding: 4px 0 4px 20px;
+    margin: 24px 0;
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 30px;
+    color: #1a1a1a;
+    font-style: italic;
+    max-width: 50ch;
+  }
+
+  /* Detail metadata sidebar */
+  .ad-meta {
+    align-self: start;
+    position: sticky;
+    top: 56px;
+  }
+  .ad-meta-card {
+    background: var(--surface-1);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px 24px 8px;
+    margin-bottom: 16px;
+  }
+  .ad-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+  }
+  .ad-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    font-size: 13px;
+  }
+  .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
+  .ad-meta-row .k { color: #888; }
+  .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .ad-meta-row .v.green { color: var(--green); }
+  .ad-meta-row .v code {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .ad-related-row {
+    font-size: 13px;
+    line-height: 18px;
+    color: #555;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+    transition: color 0.18s;
+  }
+  .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
+  .ad-related-row:hover { color: #000; }
+  .ad-related-row .when {
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ──────── LEFT SIDEBAR ──────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="ws">
+      <div class="ws-mark">M</div>
+      <div class="ws-name">Meridian</div>
+      <button class="collapse-btn" onclick="toggleSidebar()" aria-label="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+    </div>
+
+    <div class="search" data-tip="Search" onclick="openSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" placeholder="Search" readonly onclick="openSearch()">
+    </div>
+
+    <div class="nav-section">
+      <a class="nav-item" data-tip="Today" href="marcus-dashboard.html" style="text-decoration:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="nav-label">Today</span>
+      </a>
+      <div class="nav-item" data-tip="Patients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">Patients</span>
+      </div>
+      <div class="nav-item active" data-tip="Activity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-label">Activity</span>
+      </div>
+      <div class="nav-item" data-tip="Inbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="nav-label">Inbox</span>
+      </div>
+      <div class="nav-item" data-tip="Threads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-label">Threads</span>
+      </div>
+      <div class="nav-item" data-tip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+
+    <div class="pat-section">
+      <div class="nav-divider"></div>
+      <div class="section-label">Today's Panel</div>
+      <div class="pat-row active" onclick="selectPatient(this)">
+        <div class="pat-avatar"><img src="marcus.png" alt=""></div>
+        <span class="pat-name">Marcus Albright</span>
+        <span class="pat-meta">10:00</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">SR</div>
+        <span class="pat-name">Sara Reyes</span>
+        <span class="pat-meta">10:30</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">JW</div>
+        <span class="pat-name">Jamal Williams</span>
+        <span class="pat-meta">11:15</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">PL</div>
+        <span class="pat-name">Priya Lin</span>
+        <span class="pat-meta">2:00</span>
+      </div>
+    </div>
+
+    <div class="me-divider"></div>
+    <div class="me" data-tip="Dr. Emily Chen">
+      <div class="pat-avatar"><img src="dr-chen.png" alt="Dr. Emily Chen"></div>
+      <span class="me-name">Dr. Emily Chen</span>
+      <button class="me-logout" aria-label="Log out" title="Log out" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ──────── MAIN ──────── -->
+  <main class="main">
+    <div class="main-inner" id="activity-main">
+
+    <!-- LIST VIEW -->
+    <div class="activity-list-view">
+      <div class="page-header">
+        <div class="page-eyebrow">
+          <a href="marcus-dashboard.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Marcus Albright
+          </a>
+        </div>
+        <div class="page-title">Activity</div>
+        <div class="page-subtitle">What the agent observed and decided over the six weeks since the last visit. Tap any entry to&nbsp;read&nbsp;the&nbsp;reasoning.</div>
+      </div>
+
+      <div class="activity-month-card">
+        <div class="activity-month">April 2026</div>
+
+      <div class="activity-row" data-event="apr1-brief" onclick="openDetail('apr1-brief')">
+        <div class="activity-time">
+          <div class="activity-date">Apr 1</div>
+          <div class="activity-clock">9:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Briefing assembled for May 1 visit</div>
+          <div class="activity-body">Pulled six weeks of walking, sleep, and adherence signals into the patient brief. Lead with the A1C win; flag the stress cycle as the third occurrence; recommend revisiting counseling.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="apr1-watch" onclick="openDetail('apr1-watch')">
+        <div class="activity-time">
+          <div class="activity-date">Apr 1</div>
+          <div class="activity-clock">6:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch sync — overnight sleep</div>
+          <div class="activity-body">7h 12m total, 1h 48m deep. Sleep pattern stabilized over the past four nights. No flag.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">March 2026</div>
+
+      <div class="activity-row" data-event="mar30-share" onclick="openDetail('mar30-share')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 30</div>
+          <div class="activity-clock">9:14 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Shared A1C result with Marcus</div>
+          <div class="activity-body">Lab came in at 8:42 AM. Held the message until 9:14 to land outside his morning fog. Marcus replied within four hours — first inbound message in twelve days.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar30-lab" onclick="openDetail('mar30-lab')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 30</div>
+          <div class="activity-clock">8:42 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">A1C result processed at Meridian Labs</div>
+          <div class="activity-body">A1C 6.9%, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142. Cross-referenced with the partial walking adherence — the number moved despite the gap.</div>
+          <div class="activity-tags"><span class="activity-tag labs">Meridian Labs</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar28-watch" onclick="openDetail('mar28-watch')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 28</div>
+          <div class="activity-clock">7:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch — daily steps 4,820</div>
+          <div class="activity-body">Above the rolling weekly average. Walked Jessica to practice this morning. Started feeling like a return to the routine.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar25-cvs" onclick="openDetail('mar25-cvs')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 25</div>
+          <div class="activity-clock">11:15 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Metformin refill picked up at CVS</div>
+          <div class="activity-body">On schedule, no reminder needed. The refill cadence has been steady since December — meds are the lever Marcus pulls reliably even when the rest of the plan slips.</div>
+          <div class="activity-tags"><span class="activity-tag pharmacy">CVS Pharmacy</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar23-passive" onclick="openDetail('mar23-passive')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 23</div>
+          <div class="activity-clock">10:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Shifted to passive monitoring</div>
+          <div class="activity-body">Marcus stopped responding. Refill on schedule, no portal activity. Reading the silence as a stress pattern, not a dropout. Did not push.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Decision · Hold</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar22-sleep" onclick="openDetail('mar22-sleep')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 22</div>
+          <div class="activity-clock">6:45 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch — sleep dropped to 5h 40m</div>
+          <div class="activity-body">Fourth consecutive night under six hours. Resting heart rate up 6 bpm from baseline. The early-warning shape of the October pattern.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar16-counsel" onclick="openDetail('mar16-counsel')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 16</div>
+          <div class="activity-clock">2:30 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Reminded about counseling referral</div>
+          <div class="activity-body">Second reminder this period. Marcus acknowledged ("yeah, I know"), didn't schedule. Suggest a warm handoff at the next visit instead of another text.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar13-watch" onclick="openDetail('mar13-watch')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 13</div>
+          <div class="activity-clock">8:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch — steps declining sharply</div>
+          <div class="activity-body">Four-day downtrend, 6,200 → 4,100 → 2,800 → 1,900. Combined with the sleep drop this is the upstream signal of the stress cycle.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar9-flag" onclick="openDetail('mar9-flag')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 9</div>
+          <div class="activity-clock">9:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Flagged stress pattern to Dr. Chen</div>
+          <div class="activity-body">Pattern matches October exactly — sleep drops, walks stop, work deadline window. Surfaced to the clinician dashboard. Did not escalate to Marcus.</div>
+          <div class="activity-tags"><span class="activity-tag flag">Decision · Escalate</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar9-checkin" onclick="openDetail('mar9-checkin')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 9</div>
+          <div class="activity-clock">7:15 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Sent soft check-in tied to Jessica's tournament</div>
+          <div class="activity-body">"Saturday's the regional. You good for the early start?" Framed as logistics, not health. He replied "yeah" — first response in three days.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar5-resume" onclick="openDetail('mar5-resume')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 5</div>
+          <div class="activity-clock">6:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch — walks resumed</div>
+          <div class="activity-body">3 of 5 days this week. Mornings before Jessica's practice. The routine is forming around the daughter's schedule, not around the plan I gave him.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="mar2-sustained" onclick="openDetail('mar2-sustained')">
+        <div class="activity-time">
+          <div class="activity-date">Mar 2</div>
+          <div class="activity-clock">6:50 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Walking sustained — 5 of 5 mornings</div>
+          <div class="activity-body">Two weeks of consistent morning walks. No agent action needed. This is the period that moved the A1C number.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">February 2026</div>
+
+      <div class="activity-row" data-event="feb26-cvs" onclick="openDetail('feb26-cvs')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 26</div>
+          <div class="activity-clock">11:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">CVS refill auto-reminder sent</div>
+          <div class="activity-body">Standard 7-day pre-fill ping. Marcus picked up the next morning.</div>
+          <div class="activity-tags"><span class="activity-tag pharmacy">CVS Pharmacy</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb23-checkin" onclick="openDetail('feb23-checkin')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 23</div>
+          <div class="activity-clock">9:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Sent check-in tied to Jessica's soccer tournament</div>
+          <div class="activity-body">"Tournament weekend coming up. Want to walk her there in the morning?" He said yes. He walked four mornings that week — all before her 7:15 practice drop-off.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb23-watch" onclick="openDetail('feb23-watch')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 23</div>
+          <div class="activity-clock">6:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Apple Watch — first sustained walking week</div>
+          <div class="activity-body">Four of five mornings, all between 6:15 and 7:00 AM. Average distance 1.2 miles. The shape of a habit forming.</div>
+          <div class="activity-tags"><span class="activity-tag watch">Apple Watch</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="feb18-notes" onclick="openDetail('feb18-notes')">
+        <div class="activity-time">
+          <div class="activity-date">Feb 18</div>
+          <div class="activity-clock">10:00 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Visit summary uploaded from clinical notes</div>
+          <div class="activity-body">Dr. Chen's January 15 visit notes ingested. Ground truth for the plan: 30 min × 5 days walking, counseling referral, A1C recheck by May 1.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Clinical notes</span></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="activity-month-card">
+        <div class="activity-month">January 2026</div>
+
+      <div class="activity-row" data-event="jan22-referral" onclick="openDetail('jan22-referral')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 22</div>
+          <div class="activity-clock">2:15 PM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Counseling referral sent to Dr. Williams</div>
+          <div class="activity-body">First reminder, soft framing. "Dr. Chen mentioned this last visit — Dr. Williams has Thursday afternoons open." No reply.</div>
+          <div class="activity-tags"><span class="activity-tag agent">Agent · Outbound</span></div>
+        </div>
+      </div>
+
+      <div class="activity-row" data-event="jan15-intake" onclick="openDetail('jan15-intake')">
+        <div class="activity-time">
+          <div class="activity-date">Jan 15</div>
+          <div class="activity-clock">11:30 AM</div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">Intake recording transcribed and indexed</div>
+          <div class="activity-body">Eight minutes of audio from Dr. Chen's visit. Key quote indexed: "I felt like a different person when I was walking every morning before practice."</div>
+          <div class="activity-tags"><span class="activity-tag agent">Clinical intake</span></div>
+        </div>
+      </div>
+
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div class="activity-detail-view">
+      <div class="ad-content">
+        <button class="ad-back" onclick="closeDetail()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to activity
+        </button>
+        <div class="ad-eyebrow" id="ad-eyebrow">Mar 30, 2026<span class="sep">·</span>9:14 AM</div>
+        <div class="ad-title" id="ad-title">Shared A1C result with Marcus</div>
+        <div class="ad-body" id="ad-body"></div>
+      </div>
+      <div class="ad-meta">
+        <div class="ad-meta-card" id="ad-meta-card"></div>
+        <div class="ad-meta-card" id="ad-related-card"></div>
+      </div>
+    </div>
+
+    </div>
+  </main>
+
+  <!-- ──────── RIGHT PANEL (PUSHES) ──────── -->
+  <aside class="side-panel">
+    <div class="side-inner" id="side-inner"></div>
+  </aside>
+
+</div>
+
+<!-- Panel templates -->
+<template id="tpl-activity">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Between visits</div>
+  <div class="side-title">Agent activity <span class="side-title-meta">6 events</span></div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 6 · Mar 30</div>
+      <div class="side-item-title">Shared A1C result with Marcus</div>
+      <div class="side-item-text">He re-engaged within 4 hours. First inbound message in 12 days.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 5 · Mar 23</div>
+      <div class="side-item-title">Shifted to passive monitoring</div>
+      <div class="side-item-text">Marcus stopped responding. Refill picked up on schedule, no portal activity. Reading the silence as a stress pattern, not a dropout. Did not push.</div>
+    </div>
+  </div>
+
+  <div class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 4 · Mar 16</div>
+      <div class="side-item-title">Reminded about counseling referral</div>
+      <div class="side-item-text">He acknowledged ("yeah, I know"), didn't schedule. Second reminder this period.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="22" x2="4" y2="15"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 3 · Mar 9</div>
+      <div class="side-item-title">Flagged stress pattern to Dr. Chen</div>
+      <div class="side-item-text">Step count declined sharply Tuesday onward. Pattern matches October. Sent a soft check-in tied to Jessica's tournament. Chose not to escalate to Marcus.</div>
+    </div>
+  </div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 2 · Mar 2</div>
+      <div class="side-item-title">Walking sustained · 5 of 5</div>
+      <div class="side-item-text">No agent action needed.</div>
+    </div>
+  </div>
+
+  <div class="side-item blue">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 1 · Feb 23</div>
+      <div class="side-item-title">Sent check-in tied to soccer tournament</div>
+      <div class="side-item-text">Marcus responded, walked four mornings — all before Jessica's practice drop-off.</div>
+    </div>
+    <span class="side-item-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+  </div>
+</template>
+
+<template id="tpl-commit">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Set Dec 12, 2025</div>
+  <div class="side-title">Commitments <span class="side-title-meta">3 active</span></div>
+
+  <div class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Complete</div>
+      <div class="side-item-title">A1C recheck by May 1, 2026</div>
+      <div class="side-item-text">7.1% → 6.9%. Improved despite only 2 of 6 weeks of consistent walking. Lab order fulfilled at Meridian Labs on Mar 30.</div>
+    </div>
+  </div>
+
+  <div class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">On track</div>
+      <div class="side-item-title">Walking 30 min × 5 days/week</div>
+      <div class="side-item-text">5/5 weeks 1–2. Work stress broke routine week 3. Resumed partially weeks 5–6. Pattern: the walks happen before Jessica's 7:15am practice — that's the routine that works.</div>
+    </div>
+  </div>
+
+  <div class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Stalled</div>
+      <div class="side-item-title">Counseling for work stress</div>
+      <div class="side-item-text">Referral to Dr. Williams accepted in visit, never scheduled. Agent reminded twice (Jan 22, Feb 8) — no response to second. Suggest a warm handoff: agent books a slot, you confirm in-room.</div>
+    </div>
+  </div>
+</template>
+
+<!-- ──────── SEARCH MODAL ──────── -->
+<div class="search-modal" id="search-modal" onclick="if(event.target===this)closeSearch()">
+  <div class="search-modal-card">
+    <div class="search-modal-top">
+      <svg class="search-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-modal-input" id="search-modal-input" placeholder="Search patients, threads, notes…" autocomplete="off">
+      <button class="search-modal-close" onclick="closeSearch()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-modal-list">
+      <div class="search-section-label">Today's panel</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><img src="marcus.png" alt=""></div>
+        <div class="search-row-title">Marcus Albright</div>
+        <div class="search-row-meta">10:00 · Diabetes follow-up</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">SR</div>
+        <div class="search-row-title">Sara Reyes</div>
+        <div class="search-row-meta">10:30 · Hypertension</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">JW</div>
+        <div class="search-row-title">Jamal Williams</div>
+        <div class="search-row-meta">11:15 · Annual physical</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">PL</div>
+        <div class="search-row-title">Priya Lin</div>
+        <div class="search-row-meta">2:00 · Post-op check</div>
+      </div>
+      <div class="search-section-label">Recent</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="search-row-title">Marcus Albright — Visit notes Jan 15</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="search-row-title">Thread: Sara Reyes BP discussion</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="search-row-title">Activity: Marcus Week 5 — passive monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── ASK BAR ──────── -->
+<div class="cv-chat" role="region" aria-label="Ask about Marcus">
+  <div class="cv-chat-panel collapsed" id="chat-panel">
+    <div class="cv-chat-content">
+      <div class="cv-chat-scroll" id="chat-scroll"></div>
+      <div class="cv-chat-presets" id="chat-chips"></div>
+      <form onsubmit="sendInput(event)">
+        <input id="chat-input" class="cv-chat-input" placeholder="Ask about Marcus…" autocomplete="off">
+        <div class="cv-chat-bottom">
+          <div class="cv-chat-icons">
+            <button type="button" class="cv-chat-icon" title="Mention" aria-label="Mention">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Attach" aria-label="Attach">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.99 8.8l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Voice" aria-label="Voice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 19v3"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="cv-chat-send" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="cv-chat-collapsed-shell">
+      <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Marcus">
+        <span class="ph">Ask about Marcus…</span>
+        <span class="send-mini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const app = document.getElementById('app');
+const sideInner = document.getElementById('side-inner');
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('expanded');
+}
+
+/* ─── Activity detail view ─── */
+const ACTIVITY_DETAILS = {
+  'apr1-brief': {
+    eyebrow: 'Apr 1, 2026 · 9:30 AM',
+    title: 'Briefing assembled for May 1 visit',
+    body: `<p>Pulled the last six weeks of signal into a single brief: 23 walking days out of 42, two A1C lab values, four sleep dips, two missed counseling reminders, and the October pattern that this all rhymes with.</p>
+      <p>The hierarchy is intentional. Lead with the A1C improvement — Marcus is going to walk in expecting bad news and that's a worse opening than the truth. Then name the stress cycle out loud, because this is the third time and Dr. Chen needs to see it as a pattern, not an incident.</p>
+      <p>Counseling stays on the table but I'm recommending a warm handoff this time, not another reminder. The text-based nudges have been tried twice and ignored both times. Same input, different output is the definition.</p>`,
+    meta: { status: 'Complete', trigger: 'Visit T-30 days', source: 'Agent', workflow: 'visit-prep v3', confidence: '0.91', session: 'br18kx9p…7e2c1' },
+    related: [
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Feb 18', text: 'Visit summary uploaded from clinical notes' },
+    ],
+  },
+  'apr1-watch': {
+    eyebrow: 'Apr 1, 2026 · 6:00 AM',
+    title: 'Apple Watch sync — overnight sleep',
+    body: `<p>7h 12m total sleep. 1h 48m deep, 1h 22m REM, 4h 02m core. Sleep efficiency 89%. Resting heart rate 58 bpm — back to baseline.</p>
+      <p>This is the fourth consecutive night above 6.5 hours. After the March 22 dip, the sleep curve has been climbing steadily without intervention. No agent action.</p>`,
+    meta: { status: 'Observed', trigger: 'Daily sync 6:00 AM', source: 'Apple Watch', workflow: 'health-ingest v1', confidence: '—', session: 'aw9k2m3p…f01a8' },
+    related: [
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+    ],
+  },
+  'mar30-share': {
+    eyebrow: 'Mar 30, 2026 · 9:14 AM',
+    title: 'Shared A1C result with Marcus',
+    body: `<p>The lab came in at 8:42 AM. I held the message for thirty-two minutes — Marcus's first hour of the day is when he's most likely to misread tone, and I didn't want a number landing in his morning fog.</p>
+      <p>I framed it carefully: declarative, no exclamation marks, no emoji. Just <em>"Your labs are back. A1C is down — the work showed up in your blood."</em></p>
+      <div class="ad-quote">"no way."</div>
+      <p>Within four hours he replied. That's the first inbound message in twelve days. The silence was a stress pattern, not a dropout — I read it correctly. The next move is Dr. Chen's.</p>`,
+    meta: { status: 'Complete', trigger: 'Lab result received', source: 'Agent', workflow: 'lab-result-share v2', confidence: '0.94', session: 'j57a7ex7…4de37' },
+    related: [
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+    ],
+  },
+  'mar30-lab': {
+    eyebrow: 'Mar 30, 2026 · 8:42 AM',
+    title: 'A1C result processed at Meridian Labs',
+    body: `<p>Hemoglobin A1C: <strong>6.9%</strong>, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142.</p>
+      <p>I cross-referenced the result against the walking adherence: only 14 of 42 days were full 30-min walks, but those 14 were clustered in two strong weeks (Feb 23–Mar 1 and Mar 2–8). The number moved on partial input. That's the story of this visit.</p>
+      <p>Lab order #MD-3483 was placed Dec 12 with a six-week return window. Ahead of schedule by twelve days.</p>`,
+    meta: { status: 'Complete', trigger: 'Lab order fulfilled', source: 'Meridian Labs', workflow: 'lab-ingest v1', confidence: '—', session: 'lb3p7q2k…8f4e1' },
+    related: [
+      { when: 'Mar 30', text: 'Shared A1C result with Marcus' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+    ],
+  },
+  'mar23-passive': {
+    eyebrow: 'Mar 23, 2026 · 10:00 AM',
+    title: 'Shifted to passive monitoring',
+    body: `<p>Marcus stopped responding to messages on March 19. Refill picked up on schedule. No portal activity. Apple Watch still syncing — sleep down, steps down.</p>
+      <p>I had two options. Send a third reminder or hold. I held. The October pattern says reminders during the dip don't move the needle and create resentment. The pattern also says he comes back when there's something to come back to — a result, a person, a logistics-shaped reason that isn't about him.</p>
+      <p>So: no outbound messages. Continue ingesting health data. Wait for the lab.</p>`,
+    meta: { status: 'Decision', trigger: '12hr silence threshold', source: 'Agent', workflow: 'silence-handler v3', confidence: '0.81', session: 'sh4k9n2j…b7c2e' },
+    related: [
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
+      { when: 'Mar 16', text: 'Reminded about counseling referral' },
+      { when: 'Mar 30', text: 'Shared A1C result with Marcus' },
+    ],
+  },
+  'mar9-flag': {
+    eyebrow: 'Mar 9, 2026 · 9:00 AM',
+    title: 'Flagged stress pattern to Dr. Chen',
+    body: `<p>Sleep down four nights running. Steps in a four-day downtrend. Resting heart rate up 6 bpm from baseline. Marcus has gone quiet on outbound but is still responding to logistics texts about Jessica.</p>
+      <p>This is the exact shape of the October pattern. Same upstream signal (sleep), same downstream behavior (walks stop), same emotional retreat. I surfaced it to Dr. Chen's clinician dashboard with a "watch" tag — not a "act" tag. There's nothing she can usefully do at this distance, but she should see it before May 1 so the visit doesn't catch her by surprise.</p>
+      <p>I chose not to escalate to Marcus directly. The intervention point for this pattern isn't in the pattern; it's after, when there's something to point at.</p>`,
+    meta: { status: 'Decision · Escalated', trigger: 'Pattern match (October)', source: 'Agent', workflow: 'pattern-detector v4', confidence: '0.87', session: 'pd7m3k1n…9c4d2' },
+    related: [
+      { when: 'Mar 13', text: 'Steps declining sharply' },
+      { when: 'Mar 9', text: 'Sent soft check-in tied to tournament' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+    ],
+  },
+  'mar2-sustained': {
+    eyebrow: 'Mar 2, 2026 · 6:50 AM',
+    title: 'Walking sustained — 5 of 5 mornings',
+    body: `<p>Two consecutive weeks of full walking adherence. All five mornings, all between 6:15 and 7:00 AM, all before Jessica's 7:15 practice drop-off.</p>
+      <p>This is the period that moved the A1C number. I'm noting it now because the agent role here was almost zero — one tournament check-in on Feb 23, then nothing. Marcus did this. The job was to get out of the way and let the daughter's schedule do the work.</p>`,
+    meta: { status: 'Observed', trigger: '7-day adherence window', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at2p8q1m…f6e0a' },
+    related: [
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
+    ],
+  },
+  'feb23-checkin': {
+    eyebrow: 'Feb 23, 2026 · 9:30 AM',
+    title: 'Sent check-in tied to Jessica\'s soccer tournament',
+    body: `<p>"Tournament weekend coming up. Want to walk her there in the morning?" Framed as logistics, not health. He said yes.</p>
+      <p>He walked four mornings that week — all before her 7:15 AM practice drop-off. The plan Dr. Chen wrote in January said "30 minutes, five days a week, your route." The plan that worked said "walk your daughter to soccer."</p>
+      <p>I'm logging this because it's the scaffolding of the next six weeks: every successful walking day from this point forward is anchored to Jessica's schedule, not the prescription.</p>`,
+    meta: { status: 'Complete', trigger: 'Calendar context · tournament', source: 'Agent', workflow: 'context-checkin v2', confidence: '0.89', session: 'cc4k7p2m…1b8f3' },
+    related: [
+      { when: 'Feb 23', text: 'First sustained walking week recorded' },
+      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings' },
+    ],
+  },
+  'jan15-intake': {
+    eyebrow: 'Jan 15, 2026 · 11:30 AM',
+    title: 'Intake recording transcribed and indexed',
+    body: `<p>Eight minutes and forty-two seconds of audio from Dr. Chen's January 15 visit with Marcus. Transcribed, speaker-separated, indexed.</p>
+      <p>Key quote tagged for surface in future contexts:</p>
+      <div class="ad-quote">"I felt like a different person when I was walking every morning before practice."</div>
+      <p>This becomes the anchor sentence for the rest of the period. When Marcus drops off in March, this is the line that reframes the silence — not as failure, but as distance from a self he already knows how to be.</p>`,
+    meta: { status: 'Complete', trigger: 'Visit recording uploaded', source: 'Clinical intake', workflow: 'intake-process v2', confidence: '0.96', session: 'ip9k3m7p…2d5e8' },
+    related: [
+      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+    ],
+  },
+  'mar28-watch': {
+    eyebrow: 'Mar 28, 2026 · 7:00 AM',
+    title: 'Apple Watch — daily steps 4,820',
+    body: `<p>4,820 steps today. 1,140 above the rolling 7-day average of 3,680. Walked Jessica to her 7:15 AM practice this morning — the same anchor as Feb 23.</p>
+      <p>The pattern is rebuilding around her schedule, not the prescription, but it's rebuilding. The shape I care about is the start time: 6:42 AM, which matches the Feb cluster (6:15–7:00). Different day, same routine.</p>
+      <p>No outbound from me today. The data is enough.</p>`,
+    meta: { status: 'Observed', trigger: 'Daily sync 7:00 AM', source: 'Apple Watch', workflow: 'health-ingest v1', confidence: '—', session: 'aw7m2p9k…b3c4f' },
+    related: [
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
+      { when: 'Feb 23', text: 'First sustained walking week recorded' },
+    ],
+  },
+  'mar25-cvs': {
+    eyebrow: 'Mar 25, 2026 · 11:15 AM',
+    title: 'Metformin refill picked up at CVS',
+    body: `<p>Pickup logged at CVS Oak Street, 11:15 AM. Standard 30-day fill, Metformin 1000mg BID, no dose change. Insurance copay $4.20.</p>
+      <p>The refill cadence has been steady for four months: Dec 12, Jan 11, Feb 10, Mar 11, Apr 10 (next). Five consecutive on-schedule pickups.</p>
+      <p>The medication is the lever Marcus pulls reliably even when the rest of the plan slips. I take this as ground truth — the meds aren't the problem. When I'm deciding whether to escalate during a quiet stretch, the refill cadence is the variable I check first. As long as the pharmacy log keeps coming in on schedule, the silence isn't a dropout.</p>`,
+    meta: { status: 'Observed', trigger: 'Pharmacy webhook', source: 'CVS Pharmacy', workflow: 'rx-ingest v2', confidence: '—', session: 'rx4k7p2j…d8e1a' },
+    related: [
+      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+      { when: 'Feb 26', text: 'CVS refill auto-reminder sent' },
+    ],
+  },
+  'mar22-sleep': {
+    eyebrow: 'Mar 22, 2026 · 6:45 AM',
+    title: 'Apple Watch — sleep dropped to 5h 40m',
+    body: `<p>Total sleep 5h 40m. Deep 1h 02m, REM 0h 48m, core 3h 50m. Sleep efficiency 78%, down from a 14-day baseline of 88%.</p>
+      <p>This is the fourth consecutive night under six hours. Resting heart rate up 6 bpm from baseline — small but consistent across all four nights.</p>
+      <p>This is the upstream signal of the October cycle. Sleep collapses first, walks stop second, communication retreats third. I'm watching but not acting yet. Marcus is still responsive to logistics texts about Jessica's tournament, and that channel is open. The right move is to keep the channel intact, not to use it for health pressure.</p>`,
+    meta: { status: 'Flagged · Watch', trigger: '4-day sleep threshold', source: 'Apple Watch', workflow: 'sleep-pattern v3', confidence: '0.78', session: 'sp8k3m1p…7c2d4' },
+    related: [
+      { when: 'Mar 13', text: 'Steps declining sharply' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+    ],
+  },
+  'mar16-counsel': {
+    eyebrow: 'Mar 16, 2026 · 2:30 PM',
+    title: 'Reminded about counseling referral',
+    body: `<p>Sent the second counseling reminder at 2:30 PM. Same framing as the first (soft, Dr. Williams name-checked, no urgency).</p>
+      <div class="ad-quote">"yeah, I know"</div>
+      <p>Marcus replied 18 minutes later. That's an acknowledgment without commitment — the signature pattern of a stalled action. He's not refusing, he's not engaging, he's putting the conversation on pause.</p>
+      <p>I'm not sending a third reminder. Two in a six-week window is the threshold; beyond that, the channel becomes noise and I lose the thing that's actually working (logistics-shaped, low-pressure pings). I'm flagging this for in-person handoff at the May 1 visit instead — Dr. Chen can do in two minutes what three of my texts can't.</p>`,
+    meta: { status: 'Complete', trigger: 'Stalled action timer (8wk)', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.83', session: 'gr5p2m8k…1f3a7' },
+    related: [
+      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+    ],
+  },
+  'mar13-watch': {
+    eyebrow: 'Mar 13, 2026 · 8:00 AM',
+    title: 'Apple Watch — steps declining sharply',
+    body: `<p>Daily steps over the last four days: <strong>6,200 → 4,100 → 2,800 → 1,900</strong>. A 70% drop in four days.</p>
+      <p>Combined with the sleep dip from earlier this week, this is the upstream signal pattern matching October exactly. The pattern detector returned confidence 0.74 — high enough to watch, not high enough to escalate to Marcus.</p>
+      <p>I'm continuing passive monitoring. The next inflection point will be either (a) the steps recover on their own as the work deadline passes, or (b) the silence on outbound messages extends past 5 days, in which case I'll flag to Dr. Chen.</p>`,
+    meta: { status: 'Flagged · Watch', trigger: '4-day downtrend', source: 'Apple Watch', workflow: 'pattern-detector v4', confidence: '0.74', session: 'pd2k7m9p…4b8e1' },
+    related: [
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+    ],
+  },
+  'mar9-checkin': {
+    eyebrow: 'Mar 9, 2026 · 7:15 AM',
+    title: "Sent soft check-in tied to Jessica's tournament",
+    body: `<p>Sent at 7:15 AM:</p>
+      <div class="ad-quote">"Saturday's the regional. You good for the early start?"</div>
+      <p>The framing is deliberate. I'm asking about a thing he cares about (Jessica), not the thing I want him to do (walk). Logistics, not health.</p>
+      <p>He replied "yeah" three minutes later. First inbound message in three days. The channel is still open; the silence is selective, not total. That's a different shape than dropout — it's filtered communication, and I can still reach him through the right filter.</p>
+      <p>This becomes the template for re-engagement during quiet stretches: anchor the message in his world, not in his health goals.</p>`,
+    meta: { status: 'Complete', trigger: 'Calendar context · tournament', source: 'Agent', workflow: 'context-checkin v2', confidence: '0.91', session: 'cc7m3k1p…9d2e8' },
+    related: [
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+    ],
+  },
+  'mar5-resume': {
+    eyebrow: 'Mar 5, 2026 · 6:30 AM',
+    title: 'Apple Watch — walks resumed',
+    body: `<p>3 of 5 mornings this week. All before Jessica's 7:15 practice. Average distance 1.1 miles, average pace 18:00/mile.</p>
+      <p>I'm reading the variance in start times — 6:18, 6:42, 6:50 — as evidence that the routine is being rebuilt, not maintained. He's deciding each morning, not running on autopilot. That's fragile.</p>
+      <p>I'm logging the pattern but not celebrating yet. The October arc had a similar week-after-the-dip recovery and held for nine days before collapsing again. I'll wait until I see four weeks of data before naming this a trend.</p>`,
+    meta: { status: 'Observed', trigger: 'Daily sync 6:30 AM', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at4k8m1p…6c3f9' },
+    related: [
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Mar 13', text: 'Steps declining sharply' },
+    ],
+  },
+  'feb26-cvs': {
+    eyebrow: 'Feb 26, 2026 · 11:00 AM',
+    title: 'CVS refill auto-reminder sent',
+    body: `<p>Standard 7-day pre-fill ping sent at 11:00 AM. Metformin 1000mg BID, 30-day supply, CVS Oak Street.</p>
+      <p>This is automated routine — CVS sends the ping, I just log it for the adherence record. Marcus picked up the next morning at 9:42 AM. The cadence is steady.</p>
+      <p>Logging this because the pharmacy ping is one of my most reliable signals: if Marcus picks up within 48 hours of the reminder, I treat the medication as on track without needing to ask him.</p>`,
+    meta: { status: 'Complete', trigger: 'Refill window 7-day', source: 'CVS Pharmacy', workflow: 'rx-reminder v1', confidence: '—', session: 'rr3k7m9p…2b4d8' },
+    related: [
+      { when: 'Mar 25', text: 'Metformin refill picked up at CVS' },
+    ],
+  },
+  'feb23-watch': {
+    eyebrow: 'Feb 23, 2026 · 6:30 AM',
+    title: 'Apple Watch — first sustained walking week',
+    body: `<p>Four of five mornings this week. All between 6:15 and 7:00 AM, all before Jessica's 7:15 practice drop-off. Average distance 1.2 miles, average pace 17:30/mile.</p>
+      <p>The shape of a habit forming, not a streak. The start times cluster tightly (6:15, 6:22, 6:18, 6:30) which means he's not deciding each morning — he's anchoring to the practice schedule and moving on autopilot.</p>
+      <p>The previous attempt (October) had a similar opening week and held for three weeks before collapsing. I'll watch for the same shape this time but won't surface anything until I've seen at least two weeks of data.</p>`,
+    meta: { status: 'Observed', trigger: 'Weekly adherence window', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at1k4m7p…5e9c2' },
+    related: [
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings' },
+    ],
+  },
+  'feb18-notes': {
+    eyebrow: 'Feb 18, 2026 · 10:00 AM',
+    title: 'Visit summary uploaded from clinical notes',
+    body: `<p>Dr. Chen's January 15 visit notes ingested at 10:00 AM. 1,247 words across four sections (HPI, Plan, Med Rec, Follow-up).</p>
+      <p>Key plan elements indexed:</p>
+      <ul style="font-size:18px;line-height:30px;color:#2a2a2a;padding-left:24px;margin:16px 0">
+        <li>Walking 30 min × 5 days/week</li>
+        <li>Counseling referral to Dr. Williams (LCSW)</li>
+        <li>A1C recheck by May 1, 2026</li>
+        <li>Hold Metformin 1000mg BID, no dose change</li>
+      </ul>
+      <p>This becomes my ground truth for the period — the prescription against which I measure adherence and decide when to surface a signal vs. when to hold. Every reminder I send and every flag I raise references back to this document.</p>`,
+    meta: { status: 'Complete', trigger: 'Clinical notes uploaded', source: 'Clinical notes', workflow: 'note-ingest v2', confidence: '0.94', session: 'ni8k3p1m…7d2f5' },
+    related: [
+      { when: 'Jan 15', text: 'Intake recording transcribed and indexed' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+    ],
+  },
+  'jan22-referral': {
+    eyebrow: 'Jan 22, 2026 · 2:15 PM',
+    title: 'Counseling referral sent to Dr. Williams',
+    body: `<p>Sent at 2:15 PM. Soft framing, first-touch tone:</p>
+      <div class="ad-quote">"Dr. Chen mentioned this last visit — Dr. Williams has Thursday afternoons open if you want to set something up. No rush."</div>
+      <p>This is the first reminder. I'll send a second in 8 weeks if there's no acknowledgment. Beyond that, I'll route to in-person handoff at the next visit — texts have a half-life on this kind of action.</p>
+      <p>No reply yet. That's not unusual for first-touch on a referral; I won't read silence here as resistance.</p>`,
+    meta: { status: 'Complete · No reply', trigger: 'Plan item · counseling', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.88', session: 'gr2k8m1p…4c7e3' },
+    related: [
+      { when: 'Jan 15', text: 'Intake recording transcribed and indexed' },
+      { when: 'Mar 16', text: 'Reminded about counseling referral' },
+    ],
+  },
+};
+
+// Default detail for events without rich content
+function defaultDetail(key, row) {
+  const title = row.querySelector('.activity-title')?.textContent || 'Activity event';
+  const body = row.querySelector('.activity-body')?.textContent || '';
+  const date = row.querySelector('.activity-date')?.textContent || '';
+  const clock = row.querySelector('.activity-clock')?.textContent || '';
+  const tagText = row.querySelector('.activity-tag')?.textContent || 'Agent';
+  return {
+    eyebrow: date + ', 2026 · ' + clock,
+    title: title,
+    body: '<p>' + body + '</p>',
+    meta: {
+      status: 'Observed',
+      trigger: 'Routine sync',
+      source: tagText,
+      workflow: 'log v1',
+      confidence: '—',
+      session: key + '…0001',
+    },
+    related: [],
+  };
+}
+
+function openDetail(key) {
+  const row = document.querySelector(`[data-event="${key}"]`);
+  const data = ACTIVITY_DETAILS[key] || (row ? defaultDetail(key, row) : null);
+  if (!data) return;
+  if (row) window._lastDetailRow = row;
+  document.getElementById('ad-eyebrow').innerHTML = data.eyebrow.replace('·', '<span class="sep">·</span>');
+  document.getElementById('ad-title').textContent = data.title;
+  document.getElementById('ad-body').innerHTML = data.body;
+
+  // Run information card
+  const m = data.meta;
+  document.getElementById('ad-meta-card').innerHTML = `
+    <div class="ad-meta-label">Run information</div>
+    <div class="ad-meta-row"><span class="k">Status</span><span class="v ${m.status.includes('Complete') ? 'green' : ''}">${m.status}</span></div>
+    <div class="ad-meta-row"><span class="k">Trigger</span><span class="v">${m.trigger}</span></div>
+    <div class="ad-meta-row"><span class="k">Source</span><span class="v">${m.source}</span></div>
+    <div class="ad-meta-row"><span class="k">Workflow</span><span class="v">${m.workflow}</span></div>
+    <div class="ad-meta-row"><span class="k">Confidence</span><span class="v">${m.confidence}</span></div>
+    <div class="ad-meta-row"><span class="k">Session ID</span><span class="v"><code>${m.session}</code></span></div>
+  `;
+
+  // Related card
+  const relatedCard = document.getElementById('ad-related-card');
+  if (data.related && data.related.length > 0) {
+    relatedCard.innerHTML = `
+      <div class="ad-meta-label">Related</div>
+      ${data.related.map(r => `<div class="ad-related-row"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
+    `;
+    relatedCard.style.display = '';
+  } else {
+    relatedCard.style.display = 'none';
+  }
+
+  document.getElementById('activity-main').classList.add('detail-open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeDetail() {
+  document.getElementById('activity-main').classList.remove('detail-open');
+  if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+  // Restore scroll position to the row that was opened
+  if (window._lastDetailRow) {
+    setTimeout(() => {
+      window._lastDetailRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      window._lastDetailRow = null;
+    }, 50);
+  }
+}
+
+// Open detail from URL hash on page load
+window.addEventListener('load', () => {
+  const hash = window.location.hash.slice(1);
+  if (hash) openDetail(hash);
+});
+
+function toggleIntake(el) {
+  el.classList.toggle('playing');
+}
+
+function openSearch() {
+  document.getElementById('search-modal').classList.add('open');
+  setTimeout(() => document.getElementById('search-modal-input').focus(), 80);
+}
+function closeSearch() {
+  document.getElementById('search-modal').classList.remove('open');
+}
+
+function selectPatient(el) {
+  document.querySelectorAll('.pat-row').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openPanel(tplId) {
+  const tplName = tplId === 'panel-activity' ? 'tpl-activity' : 'tpl-commit';
+  const tpl = document.getElementById(tplName);
+  sideInner.innerHTML = '';
+  sideInner.appendChild(tpl.content.cloneNode(true));
+  // Inject link arrow on every side-item that doesn't already have one
+  sideInner.querySelectorAll('.side-item').forEach(item => {
+    if (item.querySelector('.side-item-link')) return;
+    const link = document.createElement('span');
+    link.className = 'side-item-link';
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+    item.appendChild(link);
+  });
+  app.classList.add('panel-open');
+}
+function closePanel() {
+  app.classList.remove('panel-open');
+}
+
+/* ─── Chat ─── */
+const CHIP_POOL = [
+  { label: 'What changed this week', q: 'What changed this week?',
+    a: 'A1C dropped 7.1 → 6.9 despite only 2 of 6 weeks of consistent walking. Sleep declined Tue–Thu (avg 5h 40m, work-stress pattern). Counseling referral still untouched. Refill picked up on time.' },
+  { label: 'Draft a message to Marcus', q: 'Draft a message to Marcus.',
+    a: '"Marcus — labs back. A1C is down to 6.9. I know the last few weeks were hard; you still moved the number. When you\'re ready, I\'d like to revisit the counseling piece — same one Dr. Williams offered. No rush. — Dr. Chen"' },
+  { label: 'Show intake notes', q: 'Show intake notes.',
+    a: 'Jan 15 intake: "I felt like a different person when I was walking every morning before practice." Stressors named — work deadlines, daughter\'s school transition. Open to counseling "in theory."' },
+  { label: 'Compare to October', q: 'How does this compare to October?',
+    a: 'Same shape. October: 4 strong weeks → work deadline → 3 weeks of silence → re-engaged when you sent a personal note. He responds to humans, not portals.' },
+  { label: 'What I\'d say first', q: 'What should I say in the first 60 seconds?',
+    a: 'Lead with the win: "Your A1C is down. You moved the number." Let it land. Then: "I want to talk about the weeks where it was hard." Don\'t open with counseling.' },
+  { label: 'Counseling angle', q: 'How do I bring up counseling without losing him?',
+    a: 'Don\'t re-pitch Dr. Williams. Try: "Last time we agreed counseling was a maybe. What\'s made it hard to schedule?" Listen first. The barrier is logistics, not willingness.' },
+  { label: 'Hold or change meds', q: 'Should I change his medication?',
+    a: 'Hold. Metformin 1000mg BID is doing the job — A1C improved on partial adherence. Re-evaluate at May 1 recheck. Adding now muddies the signal.' },
+  { label: 'Sleep & stress', q: 'What does the sleep data say?',
+    a: 'Sleep tanks Tue–Thu, every period. Work deadline pattern. Walks stop on the same days. The cycle is sleep → stress → walking → A1C drift. Counseling targets the upstream variable.' },
+  { label: 'Family context', q: 'What\'s going on with his family?',
+    a: 'Daughter Jessica, 13, soccer practice 7:15am. He walks her there — that\'s the routine that works. Wife Tara supportive but not in the plan.' },
+  { label: 'Lab trend', q: 'Show me his lab trend.',
+    a: 'A1C: 7.4 (Aug) → 7.1 (Dec) → 6.9 (Mar). Fasting glucose: 152 → 142 → 128. Direction is right, slope is shallow. Two strong weeks per quarter is what\'s moving it.' },
+  { label: 'Visit length', q: 'How long should this visit be?',
+    a: '25 minutes. Open with the win (3 min), name the stress cycle (8 min), revisit counseling (10 min), close with the next milestone (4 min). Don\'t schedule a med change.' },
+  { label: 'Risk flags', q: 'Any red flags I should ask about?',
+    a: 'Three. Pattern repeats from October. Counseling stalled twice. He went silent for 12 days in week 5. The pattern is real, the silence is the variable to watch.' },
+];
+const VISIBLE_CHIPS = 3;
+let usedChipKeys = new Set();
+let visibleChipIdxs = pickChips();
+
+function pickChips() {
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !usedChipKeys.has(i));
+  const picks = [];
+  while (picks.length < VISIBLE_CHIPS && avail.length) {
+    picks.push(avail.splice(Math.floor(Math.random()*avail.length), 1)[0]);
+  }
+  if (picks.length < VISIBLE_CHIPS) {
+    usedChipKeys = new Set();
+    return pickChips();
+  }
+  return picks;
+}
+
+function renderChips() {
+  const el = document.getElementById('chat-chips');
+  el.innerHTML = '';
+  visibleChipIdxs.forEach((poolIdx, slot) => {
+    const chip = CHIP_POOL[poolIdx];
+    const btn = document.createElement('button');
+    btn.className = 'cv-chat-chip';
+    btn.textContent = chip.label;
+    btn.onclick = () => rotateChip(slot);
+    el.appendChild(btn);
+  });
+}
+
+function rotateChip(slot) {
+  const poolIdx = visibleChipIdxs[slot];
+  const chip = CHIP_POOL[poolIdx];
+  ask(chip.q, chip.a);
+  usedChipKeys.add(poolIdx);
+  const exclude = new Set([...usedChipKeys, ...visibleChipIdxs]);
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !exclude.has(i));
+  if (avail.length === 0) {
+    usedChipKeys = new Set(visibleChipIdxs);
+    visibleChipIdxs = pickChips();
+  } else {
+    visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+  }
+  renderChips();
+}
+
+const KEYWORDS = [
+  { rx: /\b(a1c|labs?|glucose|number)\b/i, a: 'A1C 6.9% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
+  { rx: /\b(stress|sleep|anxiet)/i, a: 'Stress pattern matches October: sleep drops <6h Tue–Thu, walks stop, then 7–10 days of silence. Same trigger, same shape. Counseling is the lever.' },
+  { rx: /\b(walk|exercise|activ|step)/i, a: '3,426 avg daily steps over six weeks. Two strong weeks (5/5 each) bookended by drop-offs. The mornings before Jessica\'s practice are when he actually moves.' },
+  { rx: /\b(counsel|therap|williams)/i, a: 'Dr. Williams referral sent Dec 12. Marcus accepted in visit, never scheduled. Agent reminded twice. Suggest a warm handoff: agent books a slot, you confirm in-room.' },
+  { rx: /\b(med|metformin|prescrib|drug)/i, a: 'Metformin 1000mg BID, refill on schedule. Hold dose — A1C improvement supports it. Re-evaluate at May 1.' },
+  { rx: /\b(family|jessica|daughter|wife)/i, a: 'Daughter Jessica, 13, soccer 7:15am. Marcus walks her there — that\'s the routine that works. Wife Tara supportive, not in the plan.' },
+];
+
+function appendBubble(text, who) {
+  const scroll = document.getElementById('chat-scroll');
+  const div = document.createElement('div');
+  div.className = 'cv-chat-bubble ' + who;
+  div.textContent = text;
+  scroll.appendChild(div);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+function ask(q, a) {
+  appendBubble(q, 'user');
+  setTimeout(() => appendBubble(a, 'assistant'), 380);
+}
+function sendInput(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const t = input.value.trim();
+  if (!t) return;
+  input.value = '';
+  let reply = "Not sure — try labs, stress, the walking routine, or counseling.";
+  for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
+  ask(t, reply);
+}
+function collapseChat() {
+  const panel = document.getElementById('chat-panel');
+  if (panel.classList.contains('collapsed')) return;
+  // Lock current height as inline style so transition has a starting point
+  panel.style.height = panel.offsetHeight + 'px';
+  panel.offsetHeight; // reflow
+  panel.classList.add('collapsed');
+  panel.style.height = ''; // CSS .collapsed sets height: 52px
+}
+function expandChat() {
+  const panel = document.getElementById('chat-panel');
+  if (!panel.classList.contains('collapsed')) return;
+  // Temporarily remove class to measure natural height
+  panel.classList.remove('collapsed');
+  panel.style.transition = 'none';
+  panel.style.height = 'auto';
+  panel.style.width = '';
+  const targetH = panel.offsetHeight;
+  // Snap back to collapsed dims
+  panel.style.height = '52px';
+  panel.classList.add('collapsed');
+  panel.offsetHeight; // reflow
+  panel.style.transition = '';
+  // Now expand to target
+  panel.classList.remove('collapsed');
+  panel.style.height = targetH + 'px';
+  setTimeout(() => {
+    panel.style.height = '';
+    document.getElementById('chat-input').focus();
+  }, 550);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const sm = document.getElementById('search-modal');
+    if (sm.classList.contains('open')) { closeSearch(); return; }
+    const main = document.getElementById('activity-main');
+    if (main && main.classList.contains('detail-open')) { closeDetail(); return; }
+    if (app.classList.contains('panel-open')) closePanel();
+    else collapseChat();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+renderChips();
+</script>
+
+</body>
+</html>
