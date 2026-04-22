@@ -324,12 +324,13 @@
   .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
   .sidebar:not(.expanded) .me-name { display: none; }
   .sidebar.expanded .me {
-    background: #fff;
+    background: transparent;
     margin: -4px -14px -16px;
     padding: 4px 14px 16px;
     height: 64px;
     box-sizing: content-box;
     border-radius: 0;
+    transition: background 0.18s var(--ease-out);
   }
   .sidebar.expanded .me:hover {
     background: #fff;
