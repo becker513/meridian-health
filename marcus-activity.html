@@ -1511,8 +1511,8 @@
   }
   .activity-detail-view {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 56px;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 48px;
     opacity: 0;
     transform: translateY(12px);
     pointer-events: none;
@@ -1624,7 +1624,7 @@
     line-height: 18px;
   }
   .ad-meta-row .k { flex-shrink: 0; }
-  .ad-meta-row .v { text-align: right; }
+  .ad-meta-row .v { text-align: right; white-space: nowrap; }
   .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
   .ad-meta-row .k { color: #888; }
   .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -1640,10 +1640,12 @@
     position: relative;
     display: inline-block;
     text-align: left;
-    max-width: 320px;
+    max-width: 100%;
+    white-space: nowrap;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
     padding-bottom: 1px;
   }
+  .ad-meta-row .v.has-tip .tip { white-space: normal; }
   .ad-meta-row .v.has-tip .tip {
     position: absolute;
     bottom: calc(100% + 8px);
@@ -2364,7 +2366,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Lab result received', tip: 'Lab landed at 8:42 AM. Outbound share window opens immediately; send time within the window is agent-calibrated to Marcus\'s response history.' },
       source: { v: 'Lab result · 2024 tone history', tip: 'The A1C figure and prior-year A1C for context, plus Marcus\'s response history to past health messages showing he misreads tone in his first hour.' },
       confidence: { level: 'High', pct: '94%', tip: 'Declarative-not-celebratory framing and the 32-minute delay are both evidence-backed from Marcus\'s own response data.' },
-      handoff: 'Dr. Chen — covered in May 1 visit',
+      handoff: 'Dr. Chen, covered May 1 visit',
       log: 'j57a7ex7',
     },
     related: [
@@ -2383,7 +2385,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Lab order fulfilled', tip: 'A1C recheck ordered Dec 12 with a 6-week return window. Fulfilled Mar 30 — 12 days ahead of schedule.' },
       source: { v: 'Meridian Labs feed', tip: 'A1C, fasting glucose, and the Dec 12 order context. Cross-referenced against walking-adherence days to test the partial-input hypothesis.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic lab result. No agent judgment in the numbers.' },
-      handoff: 'Included in Mar 30 share to Marcus',
+      handoff: 'Folded into Mar 30 share',
       log: 'lb3p7q2k',
     },
     related: [
@@ -2420,7 +2422,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pattern match (October)', tip: 'Sleep drop + step downtrend + quiet outbound together match the Oct 2025 cycle. Escalation to the clinician dashboard, not to Marcus directly.' },
       source: { v: 'Watch data · outbound log', tip: 'Sleep trend, step trend, resting heart rate, outbound message log. Matched against the Oct 2025 cycle for shape.' },
       confidence: { level: 'High', pct: '87%', tip: 'All three variables present in the same shape. The choose-not-to-escalate-to-Marcus call is the harder judgment and accounts for the remainder.' },
-      handoff: 'Dr. Chen — on clinician dashboard',
+      handoff: 'Dr. Chen, clinician dashboard',
       log: 'pd7m3k1n',
     },
     related: [
@@ -2456,7 +2458,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Calendar context · tournament', tip: 'Jessica\'s soccer tournament detected on the shared calendar. Logistics-framed check-ins perform above baseline during quiet stretches.' },
       source: { v: 'Calendar · 2024 re-engagement log', tip: 'Jessica\'s practice and tournament schedule; Marcus\'s re-engagement rate to logistics-framed vs health-framed messages.' },
       confidence: { level: 'High', pct: '89%', tip: 'Logistics framing outperforms health framing 6:1 in Marcus\'s own response history during quiet windows.' },
-      handoff: 'Four-day walking streak followed',
+      handoff: 'Four-day streak followed',
       log: 'cc4k7p2m',
     },
     related: [
@@ -2493,7 +2495,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Daily sync 7:00 AM', tip: 'Apple Watch auto-sync. Flagged when daily steps exceed the rolling 7-day average by a meaningful margin.' },
       source: { v: 'Apple Watch steps · calendar', tip: 'Step count, start time, co-location with Jessica\'s practice drop-off. Compared against the Feb cluster pattern.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Device data; the pattern-match note is separately based on start-time clustering.' },
-      handoff: 'Logged as pattern-rebuild signal',
+      handoff: 'Logged as rebuild signal',
       log: 'aw7m2p9k',
     },
     related: [
@@ -2511,7 +2513,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pharmacy webhook', tip: 'CVS sends a real-time webhook at pickup. Used as a ground-truth adherence variable — medication is the lever Marcus pulls reliably even when the rest slips.' },
       source: { v: 'CVS pharmacy feed', tip: 'Pickup timestamp, copay, dose confirmation. Five consecutive on-schedule fills from Dec 12 through Mar 25.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic event from the pharmacy.' },
-      handoff: 'Baseline during silence windows',
+      handoff: 'Silence-window baseline',
       log: 'rx4k7p2j',
     },
     related: [
@@ -2549,7 +2551,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Stalled action timer (8wk)', tip: 'Committed action with no movement for 8 weeks fires a gentle-reminder. This is the second reminder in-period.' },
       source: { v: 'Plan · prior reminder cadence', tip: 'Jan 15 visit plan item; prior reminder log; the 3+ reminder threshold at which the channel becomes noise.' },
       confidence: { level: 'High', pct: '83%', tip: 'The format is proven; the choice not to send a third reminder is the higher-judgment call in this entry.' },
-      handoff: 'Dr. Chen — handle at May 1 visit',
+      handoff: 'Dr. Chen, May 1 visit',
       log: 'gr5p2m8k',
     },
     related: [
@@ -2587,7 +2589,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Calendar context · tournament', tip: 'Jessica\'s regional tournament on Saturday. Logistics-framed check-ins during quiet windows index above baseline for Marcus.' },
       source: { v: 'Calendar · re-engagement log', tip: 'Shared calendar event; Marcus\'s historical response rates to logistics vs health framing during silences.' },
       confidence: { level: 'High', pct: '91%', tip: 'Same framing shape that worked on Feb 23; proven in Marcus\'s own response history.' },
-      handoff: 'Channel re-opened; next moves staged',
+      handoff: 'Channel reopen; moves staged',
       log: 'cc7m3k1p',
     },
     related: [
@@ -2605,7 +2607,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Daily sync 6:30 AM', tip: 'Apple Watch auto-sync. Flagged when a post-dip recovery week starts to take shape.' },
       source: { v: 'Watch steps · time variance', tip: 'Step counts and walk start-time variance (6:18, 6:42, 6:50 — suggests deciding each morning, not autopilot).' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Device data; the fragile-vs-stable read is separately scored and conservative — log but don\'t celebrate.' },
-      handoff: 'Watch for 4-week confirmation',
+      handoff: 'Watch 4-week window',
       log: 'at4k8m1p',
     },
     related: [
@@ -2640,7 +2642,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Weekly adherence window', tip: 'First four-of-five-days walking week triggers the habit-forming watch flag.' },
       source: { v: 'Watch steps · time cluster', tip: 'Four-morning step counts, tight start-time cluster (6:15–7:00), co-location with Jessica\'s practice drop-off.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Adherence count is deterministic; the habit-forming-not-a-streak read uses start-time clustering as evidence.' },
-      handoff: 'Watch for two-week confirmation',
+      handoff: 'Watch two-week window',
       log: 'at1k4m7p',
     },
     related: [
@@ -2683,7 +2685,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Plan item · counseling', tip: 'Visit plan included a counseling referral. First-touch reminder sent at the standard one-week post-visit window.' },
       source: { v: 'Plan · referral history', tip: 'Plan item from Jan 15 notes; historical baseline showing first-touch referrals often get no reply.' },
       confidence: { level: 'High', pct: '88%', tip: 'Framing is evidence-backed; the decision to send a second reminder (8 weeks out) is the downstream scheduled action.' },
-      handoff: 'Second reminder scheduled T+8wk',
+      handoff: '2nd reminder at T+8wk',
       log: 'gr2k8m1p',
     },
     related: [
