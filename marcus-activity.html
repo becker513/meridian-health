@@ -1869,7 +1869,7 @@
         </div>
         <div class="activity-content">
           <div class="activity-title">A1C result processed at Meridian Labs</div>
-          <div class="activity-body">A1C 6.9%, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142. Cross-referenced with the partial walking adherence — the number moved despite the gap.</div>
+          <div class="activity-body">A1C 6.2%, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142. Cross-referenced with the partial walking adherence — the number moved despite the gap.</div>
           <div class="activity-tags"><span class="activity-tag labs">Meridian Labs</span></div>
         </div>
       </div>
@@ -2194,7 +2194,7 @@
     <div class="side-item-body">
       <div class="side-item-meta">Complete</div>
       <div class="side-item-title">A1C recheck by May 1, 2026</div>
-      <div class="side-item-text">7.1% → 6.9%. Improved despite only 2 of 6 weeks of consistent walking. Lab order fulfilled at Meridian Labs on Mar 30.</div>
+      <div class="side-item-text">7.1% → 6.2%. Improved despite only 2 of 6 weeks of consistent walking. Lab order fulfilled at Meridian Labs on Mar 30.</div>
     </div>
   </div>
 
@@ -2376,7 +2376,7 @@ const ACTIVITY_DETAILS = {
   'mar30-lab': {
     eyebrow: 'Mar 30, 2026 · 8:42 AM',
     title: 'A1C result processed at Meridian Labs',
-    body: `<p>Hemoglobin A1C: <strong>6.9%</strong>, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142.</p>
+    body: `<p>Hemoglobin A1C: <strong>6.2%</strong>, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142.</p>
       <p>I cross-referenced the result against the walking adherence: only 14 of 42 days were full 30-min walks, but those 14 were clustered in two strong weeks (Feb 23–Mar 1 and Mar 2–8). The number moved on partial input. That's the story of this visit.</p>
       <p>Lab order #MD-3483 was placed Dec 12 with a six-week return window. Ahead of schedule by twelve days.</p>`,
     meta: {
@@ -2823,9 +2823,9 @@ function closePanel() {
 /* ─── Chat ─── */
 const CHIP_POOL = [
   { label: 'What changed this week', q: 'What changed this week?',
-    a: 'A1C dropped 7.1 → 6.9 despite only 2 of 6 weeks of consistent walking. Sleep declined Tue–Thu (avg 5h 40m, work-stress pattern). Counseling referral still untouched. Refill picked up on time.' },
+    a: 'A1C dropped 7.1 → 6.2 despite only 2 of 6 weeks of consistent walking. Sleep declined Tue–Thu (avg 5h 40m, work-stress pattern). Counseling referral still untouched. Refill picked up on time.' },
   { label: 'Draft a message to Marcus', q: 'Draft a message to Marcus.',
-    a: '"Marcus — labs back. A1C is down to 6.9. I know the last few weeks were hard; you still moved the number. When you\'re ready, I\'d like to revisit the counseling piece — same one Dr. Williams offered. No rush. — Dr. Chen"' },
+    a: '"Marcus — labs back. A1C is down to 6.2. I know the last few weeks were hard; you still moved the number. When you\'re ready, I\'d like to revisit the counseling piece — same one Dr. Williams offered. No rush. — Dr. Chen"' },
   { label: 'Show intake notes', q: 'Show intake notes.',
     a: 'Jan 15 intake: "I felt like a different person when I was walking every morning before practice." Stressors named — work deadlines, daughter\'s school transition. Open to counseling "in theory."' },
   { label: 'Compare to October', q: 'How does this compare to October?',
@@ -2841,7 +2841,7 @@ const CHIP_POOL = [
   { label: 'Family context', q: 'What\'s going on with his family?',
     a: 'Daughter Jessica, 13, soccer practice 7:15am. He walks her there — that\'s the routine that works. Wife Tara supportive but not in the plan.' },
   { label: 'Lab trend', q: 'Show me his lab trend.',
-    a: 'A1C: 7.4 (Aug) → 7.1 (Dec) → 6.9 (Mar). Fasting glucose: 152 → 142 → 128. Direction is right, slope is shallow. Two strong weeks per quarter is what\'s moving it.' },
+    a: 'A1C: 7.4 (Aug) → 7.1 (Dec) → 6.2 (Mar). Fasting glucose: 152 → 142 → 128. Direction is right, slope is shallow. Two strong weeks per quarter is what\'s moving it.' },
   { label: 'Visit length', q: 'How long should this visit be?',
     a: '25 minutes. Open with the win (3 min), name the stress cycle (8 min), revisit counseling (10 min), close with the next milestone (4 min). Don\'t schedule a med change.' },
   { label: 'Risk flags', q: 'Any red flags I should ask about?',
@@ -2894,7 +2894,7 @@ function rotateChip(slot) {
 }
 
 const KEYWORDS = [
-  { rx: /\b(a1c|labs?|glucose|number)\b/i, a: 'A1C 6.9% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
+  { rx: /\b(a1c|labs?|glucose|number)\b/i, a: 'A1C 6.2% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
   { rx: /\b(stress|sleep|anxiet)/i, a: 'Stress pattern matches October: sleep drops <6h Tue–Thu, walks stop, then 7–10 days of silence. Same trigger, same shape. Counseling is the lever.' },
   { rx: /\b(walk|exercise|activ|step)/i, a: '3,426 avg daily steps over six weeks. Two strong weeks (5/5 each) bookended by drop-offs. The mornings before Jessica\'s practice are when he actually moves.' },
   { rx: /\b(counsel|therap|williams)/i, a: 'Dr. Williams referral sent Dec 12. Marcus accepted in visit, never scheduled. Agent reminded twice. Suggest a warm handoff: agent books a slot, you confirm in-room.' },
