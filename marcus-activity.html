@@ -1638,6 +1638,9 @@
   }
   .ad-meta-row .v.has-tip {
     position: relative;
+    display: inline-block;
+    text-align: left;
+    max-width: 320px;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
     padding-bottom: 1px;
   }
@@ -1683,7 +1686,7 @@
     gap: 12px;
     border-radius: 10px;
     cursor: default;
-    transition: background 0.22s var(--ease-out), color 0.18s, padding-left 0.24s var(--ease-spring);
+    transition: background 0.22s var(--ease-out), color 0.18s;
     position: relative;
   }
   .ad-related-row:first-of-type { border-top: none; }
@@ -1693,22 +1696,20 @@
     position: absolute;
     right: 14px;
     top: 50%;
-    transform: translate(-4px, -52%);
+    transform: translateY(-52%);
     color: rgba(0,0,0,0.28);
     font-size: 15px;
     font-weight: 400;
     opacity: 0;
-    transition: opacity 0.22s var(--ease-out), transform 0.26s var(--ease-spring), color 0.2s;
+    transition: opacity 0.22s var(--ease-out), color 0.2s;
   }
   .ad-related-row.is-link:hover {
     background: rgba(0,0,0,0.04);
     color: #000;
     border-top-color: transparent;
-    padding-left: 20px;
   }
   .ad-related-row.is-link:hover::after {
     opacity: 1;
-    transform: translate(0, -52%);
     color: #000;
   }
   .ad-related-row.is-link:hover + .ad-related-row { border-top-color: transparent; }
@@ -2324,7 +2325,7 @@ const ACTIVITY_DETAILS = {
       <p>Counseling stays on the table but I'm recommending a warm handoff this time, not another reminder. The text-based nudges have been tried twice and ignored both times. Same input, different output is the definition.</p>`,
     meta: {
       whyNow: { v: 'Visit T-30 days', tip: 'May 1 visit is 30 days out. Pre-visit brief generated in the standard T-30 window.' },
-      source: { v: '6 weeks adherence · sleep · labs', tip: '42 days of Apple Watch signal, two A1C lab values, pharmacy refill history, and prior-visit clinical notes. Sequenced by impact, not chronology.' },
+      source: { v: 'Adherence · sleep · labs', tip: '42 days of Apple Watch signal, two A1C lab values, pharmacy refill history, and prior-visit clinical notes. Sequenced by impact, not chronology.' },
       confidence: { level: 'High', pct: '91%', tip: 'All three headline recommendations (lead with A1C, name the stress cycle, warm handoff for counseling) are each supported by independent prior-period patterns.' },
       handoff: 'Dr. Chen, before May 1 visit',
       log: 'br18kx9p',
@@ -2398,7 +2399,7 @@ const ACTIVITY_DETAILS = {
       <p>So: no outbound messages. Continue ingesting health data. Wait for the lab.</p>`,
     meta: {
       whyNow: { v: '12hr silence threshold', tip: 'No response to two outbound messages plus portal inactivity within a 12-hour window. This is the hold-or-push decision gate.' },
-      source: { v: 'Oct pattern library · current signals', tip: 'The Oct 2025 cycle (sleep drop → walks stop → silence) is the reference pattern. Current-period signals matched it at 3 of 3 variables.' },
+      source: { v: 'Oct pattern · current signals', tip: 'The Oct 2025 cycle (sleep drop → walks stop → silence) is the reference pattern. Current-period signals matched it at 3 of 3 variables.' },
       confidence: { level: 'High', pct: '81%', tip: 'Pattern-match confidence; the hold decision is conservative because the cost of a premature push is known (Oct 2025 precedent).' },
       handoff: 'No action; ingest continues',
       log: 'sh4k9n2j',
@@ -2417,7 +2418,7 @@ const ACTIVITY_DETAILS = {
       <p>I chose not to escalate to Marcus directly. The intervention point for this pattern isn't in the pattern; it's after, when there's something to point at.</p>`,
     meta: {
       whyNow: { v: 'Pattern match (October)', tip: 'Sleep drop + step downtrend + quiet outbound together match the Oct 2025 cycle. Escalation to the clinician dashboard, not to Marcus directly.' },
-      source: { v: '14-day Apple Watch · outbound log', tip: 'Sleep trend, step trend, resting heart rate, outbound message log. Matched against the Oct 2025 cycle for shape.' },
+      source: { v: 'Watch data · outbound log', tip: 'Sleep trend, step trend, resting heart rate, outbound message log. Matched against the Oct 2025 cycle for shape.' },
       confidence: { level: 'High', pct: '87%', tip: 'All three variables present in the same shape. The choose-not-to-escalate-to-Marcus call is the harder judgment and accounts for the remainder.' },
       handoff: 'Dr. Chen — on clinician dashboard',
       log: 'pd7m3k1n',
@@ -2435,7 +2436,7 @@ const ACTIVITY_DETAILS = {
       <p>This is the period that moved the A1C number. I'm noting it now because the agent role here was almost zero — one tournament check-in on Feb 23, then nothing. Marcus did this. The job was to get out of the way and let the daughter's schedule do the work.</p>`,
     meta: {
       whyNow: { v: '7-day adherence window', tip: 'Two-week rolling window hit full adherence (5 of 5 in weeks 1 and 2). Logged as a positive pattern; no outbound needed.' },
-      source: { v: 'Apple Watch steps · start-time cluster', tip: 'Step counts, walk start times (6:15–7:00 AM), and co-location with Jessica\'s practice schedule.' },
+      source: { v: 'Watch steps · time cluster', tip: 'Step counts, walk start times (6:15–7:00 AM), and co-location with Jessica\'s practice schedule.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic adherence count. The interpretation (daughter\'s schedule did the work) is scored separately in the body.' },
       handoff: 'Logged; basis for A1C story',
       log: 'at2p8q1m',
@@ -2564,7 +2565,7 @@ const ACTIVITY_DETAILS = {
       <p>I'm continuing passive monitoring. The next inflection point will be either (a) the steps recover on their own as the work deadline passes, or (b) the silence on outbound messages extends past 5 days, in which case I'll flag to Dr. Chen.</p>`,
     meta: {
       whyNow: { v: '4-day downtrend', tip: 'Steps declining four days in a row fires a watch flag. Combined with the sleep drop this week, triggers the pattern-detector.' },
-      source: { v: 'Apple Watch steps · sleep series', tip: 'Rolling step trend and the earlier sleep-drop event. Variables matched against the Oct 2025 cycle for shape.' },
+      source: { v: 'Watch steps · sleep series', tip: 'Rolling step trend and the earlier sleep-drop event. Variables matched against the Oct 2025 cycle for shape.' },
       confidence: { level: 'Medium', pct: '74%', tip: 'Watch-level confidence. High enough to monitor; not high enough to escalate to Marcus yet.' },
       handoff: 'Watch; escalate if silence >5d',
       log: 'pd2k7m9p',
@@ -2602,7 +2603,7 @@ const ACTIVITY_DETAILS = {
       <p>I'm logging the pattern but not celebrating yet. The October arc had a similar week-after-the-dip recovery and held for nine days before collapsing again. I'll wait until I see four weeks of data before naming this a trend.</p>`,
     meta: {
       whyNow: { v: 'Daily sync 6:30 AM', tip: 'Apple Watch auto-sync. Flagged when a post-dip recovery week starts to take shape.' },
-      source: { v: 'Apple Watch steps · start-time variance', tip: 'Step counts and walk start-time variance (6:18, 6:42, 6:50 — suggests deciding each morning, not autopilot).' },
+      source: { v: 'Watch steps · time variance', tip: 'Step counts and walk start-time variance (6:18, 6:42, 6:50 — suggests deciding each morning, not autopilot).' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Device data; the fragile-vs-stable read is separately scored and conservative — log but don\'t celebrate.' },
       handoff: 'Watch for 4-week confirmation',
       log: 'at4k8m1p',
@@ -2637,7 +2638,7 @@ const ACTIVITY_DETAILS = {
       <p>The previous attempt (October) had a similar opening week and held for three weeks before collapsing. I'll watch for the same shape this time but won't surface anything until I've seen at least two weeks of data.</p>`,
     meta: {
       whyNow: { v: 'Weekly adherence window', tip: 'First four-of-five-days walking week triggers the habit-forming watch flag.' },
-      source: { v: 'Apple Watch steps · time cluster', tip: 'Four-morning step counts, tight start-time cluster (6:15–7:00), co-location with Jessica\'s practice drop-off.' },
+      source: { v: 'Watch steps · time cluster', tip: 'Four-morning step counts, tight start-time cluster (6:15–7:00), co-location with Jessica\'s practice drop-off.' },
       confidence: { level: 'Very high', pct: '99%', tip: 'Adherence count is deterministic; the habit-forming-not-a-streak read uses start-time clustering as evidence.' },
       handoff: 'Watch for two-week confirmation',
       log: 'at1k4m7p',
@@ -2661,7 +2662,7 @@ const ACTIVITY_DETAILS = {
       <p>This becomes my ground truth for the period — the prescription against which I measure adherence and decide when to surface a signal vs. when to hold. Every reminder I send and every flag I raise references back to this document.</p>`,
     meta: {
       whyNow: { v: 'Clinical notes uploaded', tip: 'New clinical notes trigger automatic ingest and indexing. This becomes the period\'s ground-truth plan.' },
-      source: { v: 'Dr. Chen Jan 15 notes (1,247 words)', tip: 'Four sections: HPI, Plan, Med Rec, Follow-up. Key plan elements tagged for downstream reminders and flags.' },
+      source: { v: 'Dr. Chen Jan 15 notes', tip: 'Four sections: HPI, Plan, Med Rec, Follow-up. Key plan elements tagged for downstream reminders and flags.' },
       confidence: { level: 'High', pct: '94%', tip: 'Ingest fidelity is high; the plan-element extraction (what counts as a commitment) is the lower-confidence part.' },
       handoff: 'Ground truth for the period',
       log: 'ni8k3p1m',
@@ -2680,7 +2681,7 @@ const ACTIVITY_DETAILS = {
       <p>No reply yet. That's not unusual for first-touch on a referral; I won't read silence here as resistance.</p>`,
     meta: {
       whyNow: { v: 'Plan item · counseling', tip: 'Visit plan included a counseling referral. First-touch reminder sent at the standard one-week post-visit window.' },
-      source: { v: 'Visit plan · 2024 referral history', tip: 'Plan item from Jan 15 notes; historical baseline showing first-touch referrals often get no reply.' },
+      source: { v: 'Plan · referral history', tip: 'Plan item from Jan 15 notes; historical baseline showing first-touch referrals often get no reply.' },
       confidence: { level: 'High', pct: '88%', tip: 'Framing is evidence-backed; the decision to send a second reminder (8 weeks out) is the downstream scheduled action.' },
       handoff: 'Second reminder scheduled T+8wk',
       log: 'gr2k8m1p',
