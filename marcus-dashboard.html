@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Marcus Albright — Patient Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F2EFE7;
+    --white: #FFFFFF;
+    --side-bg: #F2EFE7;
+    /* Unified surfaces — white cards with shadows */
+    --surface-1: #FFFFFF;
+    --surface-1-inset: #FAFAF6;    /* very subtle warm tint for nested insets */
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+    --shadow-inset: inset 0 1px 2px rgba(0,0,0,0.03);
+    --card-border: rgba(0,0,0,0.06);
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.12);
+    /* Unified text grays */
+    --text-primary: #000000;
+    --text-secondary: #555555;
+    --text-tertiary: #888888;
+    --muted: #888;
+    /* Joseph Albers earth harmony — same chroma family */
+    --amber: #B58447;        /* warm honey-ochre */
+    --amber-bg: rgba(181,132,71,0.08);
+    --amber-border: rgba(181,132,71,0.30);
+    --green: #6B8F5A;        /* soft sage */
+    --green-bg: rgba(107,143,90,0.09);
+    --green-border: rgba(107,143,90,0.30);
+    --red: #A85F3D;          /* soft terracotta */
+    --red-bg: rgba(168,95,61,0.09);
+    --red-border: rgba(168,95,61,0.30);
+    --blue: #5B7A8C;         /* dusty slate (neutral fourth) */
+    --blue-bg: rgba(91,122,140,0.09);
+    --blue-border: rgba(91,122,140,0.30);
+    --serif: 'New York', ui-serif, 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', -apple-system, 'SF Pro Text', sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    /* 4px baseline grid — all line-heights & vertical rhythm snap to multiples */
+    --base: 4px;
+  }
+  body { line-height: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rise-large {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-right {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  html, body {
+    background: #fff;
+  }
+  body {
+    font-family: var(--sans);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ──────── APP SHELL ──────── */
+  .app {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ──────── LEFT SIDEBAR — v3 (radically simple) ──────── */
+  .sidebar {
+    width: 76px;
+    flex-shrink: 0;
+    background: var(--side-bg);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    padding: 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-self: stretch;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 60;
+    transition: width 0.45s var(--ease-spring), padding 0.4s var(--ease-spring);
+  }
+  .sidebar.expanded {
+    width: 272px;
+    padding: 16px 14px 16px;
+  }
+
+  /* Every row in the sidebar shares the same 44px height + flex layout.
+     Collapsed: icon centered. Expanded: icon left, label right. */
+  .sidebar .ws,
+  .sidebar .search,
+  .sidebar .nav-item,
+  .sidebar .pat-row,
+  .sidebar .me {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: #444;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.18s var(--ease-out);
+    overflow: hidden;
+  }
+  .sidebar:not(.expanded) .ws,
+  .sidebar:not(.expanded) .search,
+  .sidebar:not(.expanded) .nav-item,
+  .sidebar:not(.expanded) .pat-row,
+  .sidebar:not(.expanded) .me {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar .nav-item:hover,
+  .sidebar .pat-row:hover,
+  .sidebar .search:hover,
+  .sidebar .me:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .sidebar .nav-item.active { background: rgba(0,0,0,0.07); color: #000; }
+  .sidebar .pat-row.active { background: rgba(0,0,0,0.07); }
+
+  /* Workspace mark */
+  .ws { margin-bottom: 6px; }
+  .sidebar .ws:hover { background: rgba(0,0,0,0.05); }
+  .ws-mark {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .ws-name {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-left: 12px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .sidebar.expanded .ws-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .ws-name { display: none; }
+
+  .collapse-btn {
+    width: 32px; height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: opacity 0.2s var(--ease-out), background 0.18s, color 0.18s;
+  }
+  .collapse-btn svg { width: 16px; height: 16px; }
+  .collapse-btn:hover { background: rgba(0,0,0,0.06); color: #000; }
+  /* Collapsed: hidden, reveals on .ws hover */
+  .sidebar:not(.expanded) .collapse-btn { display: none; }
+  .sidebar:not(.expanded) .ws:hover .ws-mark { display: none; }
+  .sidebar:not(.expanded) .ws:hover .collapse-btn { display: flex; }
+
+  /* Search */
+  .search { margin-bottom: 6px; }
+  .search svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .search-input {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: #888;
+    margin-left: 12px;
+    flex: 1;
+    min-width: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .sidebar.expanded .search { background: rgba(0,0,0,0.05); }
+  .sidebar.expanded .search-input { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .search-input { display: none; }
+
+  /* Nav items */
+  .nav-section { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item svg { width: 20px; height: 20px; color: #666; flex-shrink: 0; }
+  .nav-item.active svg { color: #000; }
+  .nav-label {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-left: 14px;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .nav-label { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .nav-label { display: none; }
+  .nav-item.active .nav-label { color: #000; font-weight: 600; }
+
+  /* Patient section — only in expanded state */
+  .pat-section {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar.expanded .pat-section { display: flex; }
+
+  .nav-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 14px -14px;
+  }
+  .section-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 0 12px 6px;
+  }
+
+  .pat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.55);
+    font-family: var(--serif);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .pat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .pat-row.active .pat-avatar { background: #000; color: #fff; }
+  .pat-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pat-row.active .pat-name { color: #000; font-weight: 600; }
+  .pat-meta {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Dr. Chen at bottom */
+  .me-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 0 -12px 12px;
+    margin-top: auto;
+  }
+  .sidebar.expanded .me-divider { margin: 0 -14px 12px; margin-top: auto; }
+  .me .pat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+  }
+  .me .pat-avatar img { border-radius: 50%; }
+  .me-name {
+    flex: 1;
+    margin-left: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar.expanded .me-name { opacity: 1; transition-delay: 0.15s; }
+  .sidebar:not(.expanded) .me-name { display: none; }
+  .sidebar.expanded .me:hover {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .sidebar.expanded .me:hover .me-logout {
+    opacity: 1;
+    color: #000;
+  }
+  .me-logout {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, opacity 0.2s;
+  }
+  .sidebar.expanded .me-logout {
+    display: flex;
+    opacity: 0;
+  }
+  .sidebar.expanded .me:hover .me-logout { opacity: 1; }
+  .me-logout:hover { background: rgba(0,0,0,0.06); color: #000; }
+  .me-logout svg { width: 16px; height: 16px; }
+
+  /* Tooltips when collapsed */
+  .sidebar [data-tip] { position: relative; }
+  .sidebar [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--sans);
+    padding: 6px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-spring);
+    z-index: 200;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  }
+  .sidebar [data-tip]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .sidebar.expanded [data-tip]::after { display: none; }
+
+
+  /* ──────── MAIN ──────── */
+  .main {
+    flex: 1;
+    background: #fff;
+    padding: 56px 56px 220px;
+    min-width: 0;
+    transition: padding 0.5s var(--ease-spring);
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .main-inner {
+    width: 100%;
+    max-width: 960px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+    animation: rise 0.5s var(--ease-out) both;
+  }
+
+  .header-text { min-width: 0; flex: 1; }
+  .patient-name {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+  }
+  .header-meta {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .header-meta .sep { color: rgba(0,0,0,0.22); }
+  .intake-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--amber);
+    cursor: pointer;
+    font-weight: 400;
+    text-decoration: none;
+    padding: 4px 12px;
+    margin: -4px -12px;
+    border-radius: 999px;
+    background: transparent;
+    transition: background 0.2s var(--ease-out);
+  }
+  .intake-link:hover { background: var(--amber-bg); }
+  .intake-icon,
+  .intake-wave,
+  .intake-pause {
+    width: 16px;
+    height: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .intake-icon svg,
+  .intake-pause svg { width: 13px; height: 13px; }
+  /* State 1: not playing → show play triangle */
+  .intake-link .intake-icon { display: inline-flex; }
+  /* State 2: playing → show wave */
+  .intake-link.playing .intake-icon { display: none; }
+  .intake-link.playing .intake-wave { display: inline-flex; gap: 2px; }
+  /* State 3: playing + hover → show pause */
+  .intake-link.playing:hover .intake-wave { display: none; }
+  .intake-link.playing:hover .intake-pause { display: inline-flex; }
+  .intake-wave span {
+    display: block;
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    border-radius: 1px;
+    transform-origin: center;
+    animation: wave 1s ease-in-out infinite;
+  }
+  .intake-wave span:nth-child(1) { animation-delay: 0s;    transform: scaleY(0.4); }
+  .intake-wave span:nth-child(2) { animation-delay: 0.15s; transform: scaleY(0.8); }
+  .intake-wave span:nth-child(3) { animation-delay: 0.3s;  transform: scaleY(0.5); }
+  .intake-wave span:nth-child(4) { animation-delay: 0.45s; transform: scaleY(1);   }
+  .intake-wave span:nth-child(5) { animation-delay: 0.6s;  transform: scaleY(0.6); }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50%      { transform: scaleY(1); }
+  }
+
+  /* CTA top right — light white pill, hover swaps content via vertical slide */
+  .cta-primary {
+    flex-shrink: 0;
+    height: 60px;
+    padding: 6px 24px 6px 6px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition:
+      background 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+  .cta-primary:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+  .cta-primary .cta-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #eee;
+    flex-shrink: 0;
+  }
+  .cta-primary .cta-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Stack: default text + hover text — slide vertically */
+  .cta-stack {
+    position: relative;
+    height: 38px;
+    min-width: 124px;
+    overflow: hidden;
+  }
+  .cta-default,
+  .cta-hover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.4s var(--ease-spring);
+  }
+  .cta-default {
+    transform: translateY(0);
+  }
+  .cta-hover {
+    transform: translateY(100%);
+    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .cta-primary:hover .cta-default { transform: translateY(-100%); }
+  .cta-primary:hover .cta-hover { transform: translateY(0); }
+  .cta-line {
+    font-size: 14px;
+    line-height: 18px;
+    color: #1a1a1a;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cta-line strong {
+    font-weight: 700;
+    color: #000;
+  }
+  .cta-hover-text {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: #000;
+  }
+  .cta-hover-arrow {
+    width: 18px;
+    height: 18px;
+    color: #000;
+  }
+  .cta-primary:active { transform: scale(0.99); }
+
+  /* Briefing card */
+  .briefing-card {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 56px 48px 60px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    animation: rise-large 0.55s var(--ease-out) 0.08s both;
+  }
+  /* Stat cards inside the briefing */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 22px;
+    padding: 22px 28px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 12px;
+  }
+  .stat-row-bottom {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .stat-value {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -1.2px;
+    font-weight: 400;
+    color: #000;
+  }
+  .stat-value .arrow {
+    font-family: var(--sans);
+    font-size: 0.62em;
+    font-weight: 300;
+    color: #000;
+    margin: 0 0.16em;
+    vertical-align: 0.32em;
+    display: inline-block;
+  }
+  .stat-value sup {
+    font-size: 14px;
+    vertical-align: super;
+    line-height: 0;
+    margin-left: 1px;
+  }
+  .stat-delta {
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: -0.1px;
+    color: var(--text-tertiary);
+  }
+  .stat-delta.up { color: var(--green); }
+
+  .briefing-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 14px;
+  }
+  .briefing-eyebrow .sep { margin: 0 8px; color: rgba(0,0,0,0.22); }
+  .briefing-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+    font-weight: 400;
+  }
+  .visit-card {
+    background: #FCFCFC;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 24px;
+    padding: 28px 32px;
+  }
+  .visit-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .visit-text {
+    font-size: 19px;
+    line-height: 28px;
+    color: #2a2a2a;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .visit-text + .visit-text { margin-top: 18px; }
+
+  /* Section above the rows */
+  .row-section {
+    margin-top: 36px;
+    animation: rise 0.5s var(--ease-out) 0.18s both;
+  }
+  .row-section-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .row-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  /* Row buttons — white cards with shadow lift on hover */
+  .row-btn {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--sans);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  }
+  .row-btn:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+  .row-btn:hover .row-arrow { transform: translateX(3px); color: #000; }
+  .row-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .row-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .row-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .row-title {
+    font-size: 19px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #000;
+    letter-spacing: -0.3px;
+  }
+  .row-meta {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 500;
+    color: #555;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+  .pill .num { letter-spacing: 0; margin-right: 3px; }
+  .pill.green { background: var(--green-bg); color: var(--green); }
+  .pill.amber { background: var(--amber-bg); color: var(--amber); }
+  .pill.red   { background: var(--red-bg); color: var(--red); }
+  .pill.gray  { background: rgba(0,0,0,0.05); color: var(--text-secondary); }
+  .row-arrow {
+    font-size: 22px;
+    color: #999;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.25s var(--ease-spring), color 0.18s;
+  }
+
+  /* ──────── RIGHT SIDE PANEL (PUSHES) ──────── */
+  .side-panel {
+    width: 0;
+    flex-shrink: 0;
+    background: #fff;
+    overflow: hidden;
+    transition: width 0.5s var(--ease-spring);
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+  }
+  .app.panel-open .side-panel {
+    width: 460px;
+    border-left: 1px solid var(--card-border);
+  }
+  .side-inner {
+    width: 460px;
+    padding: 116px 44px 220px;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .side-inner::-webkit-scrollbar { display: none; }
+  .side-close {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s;
+  }
+  .side-close:hover { background: rgba(0,0,0,0.05); color: #000; }
+  .side-close svg { width: 18px; height: 18px; }
+  .side-inner { position: relative; }
+
+  .side-eyebrow {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 14px;
+    padding-left: 16px;
+  }
+  .side-eyebrow .sep { margin: 0 8px; color: rgba(0,0,0,0.22); }
+  .side-title {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.4px;
+    margin-bottom: 32px;
+    padding-left: 16px;
+    font-weight: 400;
+  }
+  .side-title-meta { display: none; }
+  .side-deeplink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: -20px 0 28px 16px;
+    padding: 8px 14px 8px 12px;
+    border-radius: 999px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+    background: rgba(0,0,0,0.04);
+    transition: background 0.18s var(--ease-out), gap 0.2s var(--ease-out);
+  }
+  .side-deeplink:hover { background: rgba(0,0,0,0.07); gap: 10px; }
+  .side-deeplink svg { width: 13px; height: 13px; }
+
+  .side-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    margin: 0 0 16px;
+    padding-left: 16px;
+  }
+  /* Eyebrow style is consistent — color carries from item context */
+  .side-item.green .side-item-meta { color: var(--green); }
+  .side-item.amber .side-item-meta { color: var(--amber); }
+  .side-item.red   .side-item-meta { color: var(--red); }
+
+  .side-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px 16px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition:
+      background 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      box-shadow 0.3s var(--ease-out),
+      transform 0.25s var(--ease-out);
+    margin-bottom: 6px;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+  }
+  .side-item:hover {
+    background: #fff;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
+  .side-item-link {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.2s var(--ease-out), transform 0.25s var(--ease-spring), background 0.18s, color 0.18s;
+    pointer-events: none;
+  }
+  .side-item-link svg { width: 16px; height: 16px; stroke-width: 2; }
+  .side-item:hover .side-item-link {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: #000;
+  }
+  .side-item-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(0,0,0,0.025);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .side-item-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+  /* Albers harmony — color carries through tile bg + border + stroke */
+  .side-item.green .side-item-icon {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+  .side-item.amber .side-item-icon {
+    background: var(--amber-bg);
+    border-color: var(--amber-border);
+    color: var(--amber);
+  }
+  .side-item.red .side-item-icon {
+    background: var(--red-bg);
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+  .side-item.blue .side-item-icon {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue);
+  }
+  .side-item-body { flex: 1; min-width: 0; padding-top: 0; }
+  .side-item-meta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  .side-item-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 24px;
+    letter-spacing: -0.2px;
+  }
+  .side-item-text {
+    font-size: 15px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #555;
+  }
+
+  .app.panel-open .side-eyebrow { animation: slide-right 0.4s var(--ease-out) 0.18s both; }
+  .app.panel-open .side-title { animation: slide-right 0.45s var(--ease-out) 0.22s both; }
+  .app.panel-open .side-deeplink { animation: slide-right 0.4s var(--ease-out) 0.24s both; }
+  .app.panel-open .side-section-label { animation: slide-right 0.4s var(--ease-out) 0.26s both; }
+  .app.panel-open .side-item { animation: slide-right 0.45s var(--ease-out) both; }
+  .app.panel-open .side-item:nth-child(4) { animation-delay: 0.30s; }
+  .app.panel-open .side-item:nth-child(5) { animation-delay: 0.34s; }
+  .app.panel-open .side-item:nth-child(6) { animation-delay: 0.38s; }
+  .app.panel-open .side-item:nth-child(7) { animation-delay: 0.42s; }
+  .app.panel-open .side-item:nth-child(8) { animation-delay: 0.46s; }
+  .app.panel-open .side-item:nth-child(9) { animation-delay: 0.50s; }
+  .app.panel-open .side-item:nth-child(10) { animation-delay: 0.54s; }
+
+  /* ──────── SEARCH MODAL ──────── */
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 14vh;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+  }
+  .search-modal.open {
+    display: flex;
+    opacity: 1;
+  }
+  .search-modal-card {
+    width: 640px;
+    max-width: calc(100vw - 48px);
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(-12px) scale(0.98);
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .search-modal.open .search-modal-card { transform: translateY(0) scale(1); }
+  .search-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .search-modal-top svg.search-glass { width: 18px; height: 18px; color: #888; flex-shrink: 0; }
+  .search-modal-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: var(--sans);
+    font-size: 18px;
+    color: #000;
+  }
+  .search-modal-input::placeholder { color: #aaa; }
+  .search-modal-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-modal-close:hover { background: rgba(0,0,0,0.1); color: #000; }
+  .search-modal-close svg { width: 14px; height: 14px; }
+  .search-modal-list {
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+    scrollbar-width: none;
+  }
+  .search-modal-list::-webkit-scrollbar { display: none; }
+  .search-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    padding: 16px 14px 8px;
+  }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .search-row:hover { background: rgba(0,0,0,0.04); }
+  .search-row-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.05);
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .search-row-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .search-row-icon svg { width: 16px; height: 16px; }
+  .search-row-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+  }
+  .search-row-meta {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ──────── ASK BAR — centers under the main working area ──────── */
+  .cv-chat {
+    position: fixed;
+    bottom: 0;
+    left: 80px;        /* default: clear of collapsed sidebar */
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: 0 16px 20px;
+    transition: left 0.45s var(--ease-spring), right 0.5s var(--ease-spring);
+    animation: rise-large 0.6s var(--ease-out) 0.4s both;
+  }
+  /* When sidebar is expanded, push the chat bar right */
+  body:has(.sidebar.expanded) .cv-chat { left: 272px; }
+  /* When right side panel is open, pull the chat bar left */
+  body:has(.app.panel-open) .cv-chat { right: 460px; }
+  .cv-chat-panel {
+    pointer-events: auto;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    width: min(820px, calc(100vw - 32px));
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    transition:
+      width 0.5s var(--ease-spring),
+      height 0.5s var(--ease-spring),
+      border-radius 0.5s var(--ease-spring),
+      box-shadow 0.4s var(--ease-out),
+      transform 0.3s var(--ease-spring);
+    transform-origin: bottom center;
+  }
+  .cv-chat-panel.collapsed { border-radius: 22px; }
+  .cv-chat-content {
+    padding: 20px 22px 18px 26px;
+    transition: opacity 0.25s var(--ease-out), filter 0.25s var(--ease-out);
+  }
+  .cv-chat-collapsed-shell {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .cv-chat-panel.collapsed {
+    width: 260px;
+    height: 52px;
+    border-radius: 22px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  }
+  .cv-chat-panel.collapsed:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+  .cv-chat-panel.collapsed .cv-chat-content {
+    opacity: 0;
+    filter: blur(4px);
+    pointer-events: none;
+  }
+  .cv-chat-panel.collapsed .cv-chat-collapsed-shell {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.18s;
+  }
+  .cv-chat-collapsed-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 8px 8px 8px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    border-radius: 999px;
+    font-size: 15px;
+    color: #aaa;
+    font-weight: 400;
+  }
+  .cv-chat-collapsed-bar .ph {
+    flex: 1;
+    text-align: left;
+    color: #aaa;
+    transition: color 0.35s var(--ease-out);
+    position: relative;
+  }
+  .cv-chat-panel.collapsed:hover .cv-chat-collapsed-bar .ph {
+    color: #000;
+    animation: ph-shimmer 0.75s var(--ease-out) both;
+  }
+  @keyframes ph-shimmer {
+    0%   { color: #aaa; }
+    40%  { color: #cfcfcf; }
+    100% { color: #000; }
+  }
+  .cv-chat-collapsed-bar .send-mini {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-collapsed-bar .send-mini svg { width: 14px; height: 14px; }
+  .cv-chat-panel.collapsed:hover .send-mini { transform: scale(1.06); }
+  .cv-chat-scroll {
+    max-height: 192px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: none;
+  }
+  .cv-chat-scroll::-webkit-scrollbar { display: none; }
+  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-bubble {
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 10px;
+    max-width: 92%;
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(0,0,0,0.05);
+    color: #000;
+  }
+  .cv-chat-bubble.assistant {
+    align-self: flex-start;
+    background: transparent;
+    color: #444;
+    border: 1px solid var(--border);
+  }
+  .cv-chat-input {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 6px 0 14px;
+    border: none;
+    background: transparent;
+    color: #000;
+    outline: none;
+  }
+  .cv-chat-input::placeholder { color: #aaa; }
+  .cv-chat-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cv-chat-icons { display: flex; align-items: center; gap: 14px; }
+  .cv-chat-icon {
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+  }
+  .cv-chat-icon:hover { color: #000; }
+  .cv-chat-icon svg { width: 20px; height: 20px; }
+  .cv-chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s var(--ease-spring);
+  }
+  .cv-chat-send:hover { transform: scale(1.06); }
+  .cv-chat-send:active { transform: scale(0.94); }
+  .cv-chat-send svg { width: 16px; height: 16px; }
+  .cv-chat-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .cv-chat-chip {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s var(--ease-out);
+    animation: rise 0.3s var(--ease-out) both;
+  }
+  .cv-chat-chip:hover {
+    border-color: rgba(0,0,0,0.2);
+    color: #000;
+  }
+  .cv-chat-chip:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ──────── LEFT SIDEBAR ──────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="ws">
+      <div class="ws-mark">M</div>
+      <div class="ws-name">Meridian</div>
+      <button class="collapse-btn" onclick="toggleSidebar()" aria-label="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+    </div>
+
+    <div class="search" data-tip="Search" onclick="openSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" placeholder="Search" readonly onclick="openSearch()">
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-item active" data-tip="Today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="nav-label">Today</span>
+      </div>
+      <div class="nav-item" data-tip="Patients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">Patients</span>
+      </div>
+      <a class="nav-item" data-tip="Activity" href="marcus-activity.html" style="text-decoration:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-label">Activity</span>
+      </a>
+      <div class="nav-item" data-tip="Inbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="nav-label">Inbox</span>
+      </div>
+      <div class="nav-item" data-tip="Threads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="nav-label">Threads</span>
+      </div>
+      <div class="nav-item" data-tip="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+
+    <div class="pat-section">
+      <div class="nav-divider"></div>
+      <div class="section-label">Today's Panel</div>
+      <div class="pat-row active" onclick="selectPatient(this)">
+        <div class="pat-avatar"><img src="marcus.png" alt=""></div>
+        <span class="pat-name">Marcus Albright</span>
+        <span class="pat-meta">10:00</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">SR</div>
+        <span class="pat-name">Sara Reyes</span>
+        <span class="pat-meta">10:30</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">JW</div>
+        <span class="pat-name">Jamal Williams</span>
+        <span class="pat-meta">11:15</span>
+      </div>
+      <div class="pat-row" onclick="selectPatient(this)">
+        <div class="pat-avatar">PL</div>
+        <span class="pat-name">Priya Lin</span>
+        <span class="pat-meta">2:00</span>
+      </div>
+    </div>
+
+    <div class="me-divider"></div>
+    <div class="me" data-tip="Dr. Emily Chen">
+      <div class="pat-avatar"><img src="dr-chen.png" alt="Dr. Emily Chen"></div>
+      <span class="me-name">Dr. Emily Chen</span>
+      <button class="me-logout" aria-label="Log out" title="Log out" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ──────── MAIN ──────── -->
+  <main class="main">
+    <div class="main-inner">
+    <div class="topbar">
+      <div class="header-text">
+        <div class="patient-name">Marcus Albright</div>
+        <div class="header-meta">
+          <span>Next visit May 1</span>
+          <span class="sep">·</span>
+          <a class="intake-link" id="intake-link" onclick="toggleIntake(this)">
+            <span class="intake-icon"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M2 1 L13 7 L2 13 Z"/></svg></span>
+            <span class="intake-wave"><span></span><span></span><span></span><span></span><span></span></span>
+            <span class="intake-pause"><svg viewBox="0 0 14 14" fill="currentColor"><rect x="2" y="2" width="3" height="10" rx="0.5"/><rect x="9" y="2" width="3" height="10" rx="0.5"/></svg></span>
+            <span class="intake-label">Intake recording · Jan 15</span>
+          </a>
+        </div>
+      </div>
+      <button class="cta-primary">
+        <span class="cta-photo"><img src="marcus.png" alt=""></span>
+        <span class="cta-stack">
+          <span class="cta-default">
+            <span class="cta-line"><strong>Patient ID:</strong> 62F94</span>
+            <span class="cta-line"><strong>DOB:</strong> 5/13/88</span>
+          </span>
+          <span class="cta-hover">
+            <span class="cta-hover-text">Begin Visit</span>
+            <svg class="cta-hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </span>
+      </button>
+    </div>
+
+    <!-- Briefing -->
+    <div class="briefing-card">
+      <div class="briefing-eyebrow">Updated today</div>
+      <div class="briefing-title">A1C improved with only two weeks of walking.<br>Partial adherence moved&nbsp;the&nbsp;number.</div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">Average Daily Steps</div>
+          <div class="stat-row-bottom">
+            <div class="stat-value">3,426</div>
+            <div class="stat-delta down">↓ 12%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Estimated A1C</div>
+          <div class="stat-row-bottom">
+            <div class="stat-value">7.1<span class="arrow">→</span>6.9<sup>%</sup></div>
+            <div class="stat-delta up">✓ 2.8%</div>
+          </div>
+        </div>
+      </div>
+      <div class="visit-card">
+        <div class="visit-label">For the next visit</div>
+        <div class="visit-text">
+          Work stress disrupted his sleep at week 3 and the walking routine dropped off — same shape as the October cycle, now the third time we've seen it run.
+        </div>
+        <div class="visit-text">
+          The counseling referral has sat untouched for six weeks despite two reminders, so Marcus may not expect good news this visit. Lead with the A1C improvement, name the stress cycle out loud, revisit counseling as a warm handoff, and consider holding the medication for now.
+        </div>
+      </div>
+    </div>
+
+    <!-- Between visits — agent's record of the gap -->
+    <div class="row-section">
+      <div class="row-section-eyebrow">Between visits</div>
+      <div class="row-list">
+        <button class="row-btn" onclick="openPanel('panel-activity')">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </span>
+          <span class="row-content">
+            <span class="row-title">Agent activity</span>
+            <span class="row-meta">
+              <span class="pill gray"><span class="num">6</span>recent</span>
+            </span>
+          </span>
+          <span class="row-arrow">›</span>
+        </button>
+        <button class="row-btn" onclick="openPanel('panel-commit')">
+          <span class="row-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </span>
+          <span class="row-content">
+            <span class="row-title">Commitments</span>
+            <span class="row-meta">
+              <span class="pill green"><span class="num">1</span>complete</span>
+              <span class="pill amber"><span class="num">1</span>on track</span>
+              <span class="pill red"><span class="num">1</span>stalled</span>
+            </span>
+          </span>
+          <span class="row-arrow">›</span>
+        </button>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <!-- ──────── RIGHT PANEL (PUSHES) ──────── -->
+  <aside class="side-panel">
+    <div class="side-inner" id="side-inner"></div>
+  </aside>
+
+</div>
+
+<!-- Panel templates -->
+<template id="tpl-activity">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Between visits<span class="sep">·</span>6 highlights</div>
+  <div class="side-title">Agent activity</div>
+  <a class="side-deeplink" href="marcus-activity.html">
+    Open full activity log
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+  </a>
+
+  <a href="marcus-activity.html#mar30-share" class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 6 · Mar 30</div>
+      <div class="side-item-title">Shared A1C result with Marcus</div>
+      <div class="side-item-text">He re-engaged within 4 hours. First inbound message in 12 days.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar23-passive" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 5 · Mar 23</div>
+      <div class="side-item-title">Shifted to passive monitoring</div>
+      <div class="side-item-text">Marcus stopped responding. Refill picked up on schedule, no portal activity. Reading the silence as a stress pattern, not a dropout. Did not push.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar16-counsel" class="side-item">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 4 · Mar 16</div>
+      <div class="side-item-title">Reminded about counseling referral</div>
+      <div class="side-item-text">He acknowledged ("yeah, I know"), didn't schedule. Second reminder this period.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar9-flag" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="22" x2="4" y2="15"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 3 · Mar 9</div>
+      <div class="side-item-title">Flagged stress pattern to Dr. Chen</div>
+      <div class="side-item-text">Step count declined sharply Tuesday onward. Pattern matches October. Sent a soft check-in tied to Jessica's tournament. Chose not to escalate to Marcus.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar2-sustained" class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 2 · Mar 2</div>
+      <div class="side-item-title">Walking sustained · 5 of 5</div>
+      <div class="side-item-text">No agent action needed.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#feb23-checkin" class="side-item blue">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Week 1 · Feb 23</div>
+      <div class="side-item-title">Sent check-in tied to soccer tournament</div>
+      <div class="side-item-text">Marcus responded, walked four mornings — all before Jessica's practice drop-off.</div>
+    </div>
+    <span class="side-item-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span>
+  </a>
+</template>
+
+<template id="tpl-commit">
+  <button class="side-close" onclick="closePanel()" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="side-eyebrow">Set Dec 12, 2025<span class="sep">·</span>3 active</div>
+  <div class="side-title">Commitments</div>
+
+  <a href="marcus-activity.html#mar30-lab" class="side-item green">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Complete</div>
+      <div class="side-item-title">A1C recheck by May 1, 2026</div>
+      <div class="side-item-text">7.1% → 6.9%. Improved despite only 2 of 6 weeks of consistent walking. Lab order fulfilled at Meridian Labs on Mar 30.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar2-sustained" class="side-item amber">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">On track</div>
+      <div class="side-item-title">Walking 30 min × 5 days/week</div>
+      <div class="side-item-text">5/5 weeks 1–2. Work stress broke routine week 3. Resumed partially weeks 5–6. Pattern: the walks happen before Jessica's 7:15am practice — that's the routine that works.</div>
+    </div>
+  </a>
+
+  <a href="marcus-activity.html#mar16-counsel" class="side-item red">
+    <div class="side-item-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="side-item-body">
+      <div class="side-item-meta">Stalled</div>
+      <div class="side-item-title">Counseling for work stress</div>
+      <div class="side-item-text">Referral to Dr. Williams accepted in visit, never scheduled. Agent reminded twice (Jan 22, Feb 8) — no response to second. Suggest a warm handoff: agent books a slot, you confirm in-room.</div>
+    </div>
+  </a>
+</template>
+
+<!-- ──────── SEARCH MODAL ──────── -->
+<div class="search-modal" id="search-modal" onclick="if(event.target===this)closeSearch()">
+  <div class="search-modal-card">
+    <div class="search-modal-top">
+      <svg class="search-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-modal-input" id="search-modal-input" placeholder="Search patients, threads, notes…" autocomplete="off">
+      <button class="search-modal-close" onclick="closeSearch()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="search-modal-list">
+      <div class="search-section-label">Today's panel</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><img src="marcus.png" alt=""></div>
+        <div class="search-row-title">Marcus Albright</div>
+        <div class="search-row-meta">10:00 · Diabetes follow-up</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">SR</div>
+        <div class="search-row-title">Sara Reyes</div>
+        <div class="search-row-meta">10:30 · Hypertension</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">JW</div>
+        <div class="search-row-title">Jamal Williams</div>
+        <div class="search-row-meta">11:15 · Annual physical</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon">PL</div>
+        <div class="search-row-title">Priya Lin</div>
+        <div class="search-row-meta">2:00 · Post-op check</div>
+      </div>
+      <div class="search-section-label">Recent</div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="search-row-title">Marcus Albright — Visit notes Jan 15</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="search-row-title">Thread: Sara Reyes BP discussion</div>
+      </div>
+      <div class="search-row" onclick="closeSearch()">
+        <div class="search-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="search-row-title">Activity: Marcus Week 5 — passive monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── ASK BAR ──────── -->
+<div class="cv-chat" role="region" aria-label="Ask about Marcus">
+  <div class="cv-chat-panel collapsed" id="chat-panel">
+    <div class="cv-chat-content">
+      <div class="cv-chat-scroll" id="chat-scroll"></div>
+      <div class="cv-chat-presets" id="chat-chips"></div>
+      <form onsubmit="sendInput(event)">
+        <input id="chat-input" class="cv-chat-input" placeholder="Ask about Marcus…" autocomplete="off">
+        <div class="cv-chat-bottom">
+          <div class="cv-chat-icons">
+            <button type="button" class="cv-chat-icon" title="Mention" aria-label="Mention">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Attach" aria-label="Attach">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.99 8.8l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.49"/></svg>
+            </button>
+            <button type="button" class="cv-chat-icon" title="Voice" aria-label="Voice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 19v3"/></svg>
+            </button>
+          </div>
+          <button type="submit" class="cv-chat-send" aria-label="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="cv-chat-collapsed-shell">
+      <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Marcus">
+        <span class="ph">Ask about Marcus…</span>
+        <span class="send-mini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const app = document.getElementById('app');
+const sideInner = document.getElementById('side-inner');
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('expanded');
+}
+
+function toggleIntake(el) {
+  el.classList.toggle('playing');
+}
+
+function openSearch() {
+  document.getElementById('search-modal').classList.add('open');
+  setTimeout(() => document.getElementById('search-modal-input').focus(), 80);
+}
+function closeSearch() {
+  document.getElementById('search-modal').classList.remove('open');
+}
+
+function selectPatient(el) {
+  document.querySelectorAll('.pat-row').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openPanel(tplId) {
+  const tplName = tplId === 'panel-activity' ? 'tpl-activity' : 'tpl-commit';
+  const tpl = document.getElementById(tplName);
+  sideInner.innerHTML = '';
+  sideInner.appendChild(tpl.content.cloneNode(true));
+  // Inject link arrow on every side-item that doesn't already have one
+  sideInner.querySelectorAll('.side-item').forEach(item => {
+    if (item.querySelector('.side-item-link')) return;
+    const link = document.createElement('span');
+    link.className = 'side-item-link';
+    link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+    item.appendChild(link);
+  });
+  app.classList.add('panel-open');
+}
+function closePanel() {
+  app.classList.remove('panel-open');
+}
+
+/* ─── Chat ─── */
+const CHIP_POOL = [
+  { label: 'What changed this week', q: 'What changed this week?',
+    a: 'A1C dropped 7.1 → 6.9 despite only 2 of 6 weeks of consistent walking. Sleep declined Tue–Thu (avg 5h 40m, work-stress pattern). Counseling referral still untouched. Refill picked up on time.' },
+  { label: 'Draft a message to Marcus', q: 'Draft a message to Marcus.',
+    a: '"Marcus — labs back. A1C is down to 6.9. I know the last few weeks were hard; you still moved the number. When you\'re ready, I\'d like to revisit the counseling piece — same one Dr. Williams offered. No rush. — Dr. Chen"' },
+  { label: 'Show intake notes', q: 'Show intake notes.',
+    a: 'Jan 15 intake: "I felt like a different person when I was walking every morning before practice." Stressors named — work deadlines, daughter\'s school transition. Open to counseling "in theory."' },
+  { label: 'Compare to October', q: 'How does this compare to October?',
+    a: 'Same shape. October: 4 strong weeks → work deadline → 3 weeks of silence → re-engaged when you sent a personal note. He responds to humans, not portals.' },
+  { label: 'What I\'d say first', q: 'What should I say in the first 60 seconds?',
+    a: 'Lead with the win: "Your A1C is down. You moved the number." Let it land. Then: "I want to talk about the weeks where it was hard." Don\'t open with counseling.' },
+  { label: 'Counseling angle', q: 'How do I bring up counseling without losing him?',
+    a: 'Don\'t re-pitch Dr. Williams. Try: "Last time we agreed counseling was a maybe. What\'s made it hard to schedule?" Listen first. The barrier is logistics, not willingness.' },
+  { label: 'Hold or change meds', q: 'Should I change his medication?',
+    a: 'Hold. Metformin 1000mg BID is doing the job — A1C improved on partial adherence. Re-evaluate at May 1 recheck. Adding now muddies the signal.' },
+  { label: 'Sleep & stress', q: 'What does the sleep data say?',
+    a: 'Sleep tanks Tue–Thu, every period. Work deadline pattern. Walks stop on the same days. The cycle is sleep → stress → walking → A1C drift. Counseling targets the upstream variable.' },
+  { label: 'Family context', q: 'What\'s going on with his family?',
+    a: 'Daughter Jessica, 13, soccer practice 7:15am. He walks her there — that\'s the routine that works. Wife Tara supportive but not in the plan.' },
+  { label: 'Lab trend', q: 'Show me his lab trend.',
+    a: 'A1C: 7.4 (Aug) → 7.1 (Dec) → 6.9 (Mar). Fasting glucose: 152 → 142 → 128. Direction is right, slope is shallow. Two strong weeks per quarter is what\'s moving it.' },
+  { label: 'Visit length', q: 'How long should this visit be?',
+    a: '25 minutes. Open with the win (3 min), name the stress cycle (8 min), revisit counseling (10 min), close with the next milestone (4 min). Don\'t schedule a med change.' },
+  { label: 'Risk flags', q: 'Any red flags I should ask about?',
+    a: 'Three. Pattern repeats from October. Counseling stalled twice. He went silent for 12 days in week 5. The pattern is real, the silence is the variable to watch.' },
+];
+const VISIBLE_CHIPS = 3;
+let usedChipKeys = new Set();
+let visibleChipIdxs = pickChips();
+
+function pickChips() {
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !usedChipKeys.has(i));
+  const picks = [];
+  while (picks.length < VISIBLE_CHIPS && avail.length) {
+    picks.push(avail.splice(Math.floor(Math.random()*avail.length), 1)[0]);
+  }
+  if (picks.length < VISIBLE_CHIPS) {
+    usedChipKeys = new Set();
+    return pickChips();
+  }
+  return picks;
+}
+
+function renderChips() {
+  const el = document.getElementById('chat-chips');
+  el.innerHTML = '';
+  visibleChipIdxs.forEach((poolIdx, slot) => {
+    const chip = CHIP_POOL[poolIdx];
+    const btn = document.createElement('button');
+    btn.className = 'cv-chat-chip';
+    btn.textContent = chip.label;
+    btn.onclick = () => rotateChip(slot);
+    el.appendChild(btn);
+  });
+}
+
+function rotateChip(slot) {
+  const poolIdx = visibleChipIdxs[slot];
+  const chip = CHIP_POOL[poolIdx];
+  ask(chip.q, chip.a);
+  usedChipKeys.add(poolIdx);
+  const exclude = new Set([...usedChipKeys, ...visibleChipIdxs]);
+  const avail = CHIP_POOL.map((_,i) => i).filter(i => !exclude.has(i));
+  if (avail.length === 0) {
+    usedChipKeys = new Set(visibleChipIdxs);
+    visibleChipIdxs = pickChips();
+  } else {
+    visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+  }
+  renderChips();
+}
+
+const KEYWORDS = [
+  { rx: /\b(a1c|labs?|glucose|number)\b/i, a: 'A1C 6.9% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
+  { rx: /\b(stress|sleep|anxiet)/i, a: 'Stress pattern matches October: sleep drops <6h Tue–Thu, walks stop, then 7–10 days of silence. Same trigger, same shape. Counseling is the lever.' },
+  { rx: /\b(walk|exercise|activ|step)/i, a: '3,426 avg daily steps over six weeks. Two strong weeks (5/5 each) bookended by drop-offs. The mornings before Jessica\'s practice are when he actually moves.' },
+  { rx: /\b(counsel|therap|williams)/i, a: 'Dr. Williams referral sent Dec 12. Marcus accepted in visit, never scheduled. Agent reminded twice. Suggest a warm handoff: agent books a slot, you confirm in-room.' },
+  { rx: /\b(med|metformin|prescrib|drug)/i, a: 'Metformin 1000mg BID, refill on schedule. Hold dose — A1C improvement supports it. Re-evaluate at May 1.' },
+  { rx: /\b(family|jessica|daughter|wife)/i, a: 'Daughter Jessica, 13, soccer 7:15am. Marcus walks her there — that\'s the routine that works. Wife Tara supportive, not in the plan.' },
+];
+
+function appendBubble(text, who) {
+  const scroll = document.getElementById('chat-scroll');
+  const div = document.createElement('div');
+  div.className = 'cv-chat-bubble ' + who;
+  div.textContent = text;
+  scroll.appendChild(div);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+function ask(q, a) {
+  appendBubble(q, 'user');
+  setTimeout(() => appendBubble(a, 'assistant'), 380);
+}
+function sendInput(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const t = input.value.trim();
+  if (!t) return;
+  input.value = '';
+  let reply = "Not sure — try labs, stress, the walking routine, or counseling.";
+  for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
+  ask(t, reply);
+}
+function collapseChat() {
+  const panel = document.getElementById('chat-panel');
+  if (panel.classList.contains('collapsed')) return;
+  const input = document.getElementById('chat-input');
+  if (input) input.blur();
+  // Cancel any pending expand cleanup
+  if (window._chatExpandTimer) {
+    clearTimeout(window._chatExpandTimer);
+    window._chatExpandTimer = null;
+  }
+  // Lock current dimensions so transition has a starting point
+  panel.style.height = panel.offsetHeight + 'px';
+  panel.style.width = panel.offsetWidth + 'px';
+  panel.offsetHeight; // reflow
+  panel.classList.add('collapsed');
+  panel.style.height = '';
+  panel.style.width = '';
+}
+function expandChat() {
+  const panel = document.getElementById('chat-panel');
+  if (!panel.classList.contains('collapsed')) return;
+  // Temporarily remove class to measure natural height
+  panel.classList.remove('collapsed');
+  panel.style.transition = 'none';
+  panel.style.height = 'auto';
+  panel.style.width = '';
+  const targetH = panel.offsetHeight;
+  // Snap back to collapsed dims
+  panel.style.height = '52px';
+  panel.classList.add('collapsed');
+  panel.offsetHeight; // reflow
+  panel.style.transition = '';
+  // Now expand to target
+  panel.classList.remove('collapsed');
+  panel.style.height = targetH + 'px';
+  window._chatExpandTimer = setTimeout(() => {
+    panel.style.height = '';
+    window._chatExpandTimer = null;
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  }, 550);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const sm = document.getElementById('search-modal');
+    if (sm.classList.contains('open')) { closeSearch(); return; }
+    if (app.classList.contains('panel-open')) closePanel();
+    else collapseChat();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); collapseChat(); }
+});
+
+renderChips();
+</script>
+
+</body>
+</html>
