@@ -1615,12 +1615,16 @@
   }
   .ad-meta-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 16px;
     padding: 12px 0;
     border-top: 1px solid rgba(0,0,0,0.05);
     font-size: 13px;
+    line-height: 18px;
   }
+  .ad-meta-row .k { flex-shrink: 0; }
+  .ad-meta-row .v { text-align: right; }
   .ad-meta-row:first-of-type { border-top: none; padding-top: 0; }
   .ad-meta-row .k { color: #888; }
   .ad-meta-row .v { color: #1a1a1a; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -1635,7 +1639,6 @@
   .ad-meta-row .v.has-tip {
     position: relative;
     border-bottom: 1px dotted rgba(0,0,0,0.28);
-    cursor: help;
     padding-bottom: 1px;
   }
   .ad-meta-row .v.has-tip .tip {
@@ -1673,17 +1676,41 @@
     font-size: 13px;
     line-height: 18px;
     color: #555;
-    padding: 10px 0;
+    padding: 12px 14px;
+    margin: 0 -14px;
     border-top: 1px solid rgba(0,0,0,0.05);
     display: flex;
-    gap: 10px;
-    cursor: pointer;
-    transition: color 0.18s;
+    gap: 12px;
+    border-radius: 10px;
+    cursor: default;
+    transition: background 0.22s var(--ease-out), color 0.18s, padding-left 0.24s var(--ease-spring);
+    position: relative;
   }
-  .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
-  .ad-related-row { cursor: default; }
-  .ad-related-row.is-link { cursor: pointer; }
-  .ad-related-row.is-link:hover { color: #000; border-top-color: transparent; }
+  .ad-related-row:first-of-type { border-top: none; }
+  .ad-related-row.is-link { cursor: pointer; padding-right: 34px; }
+  .ad-related-row.is-link::after {
+    content: "↗";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translate(-4px, -52%);
+    color: rgba(0,0,0,0.28);
+    font-size: 15px;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.22s var(--ease-out), transform 0.26s var(--ease-spring), color 0.2s;
+  }
+  .ad-related-row.is-link:hover {
+    background: rgba(0,0,0,0.04);
+    color: #000;
+    border-top-color: transparent;
+    padding-left: 20px;
+  }
+  .ad-related-row.is-link:hover::after {
+    opacity: 1;
+    transform: translate(0, -52%);
+    color: #000;
+  }
   .ad-related-row.is-link:hover + .ad-related-row { border-top-color: transparent; }
   .ad-related-row.is-link:hover .when { color: #555; }
   .ad-related-row .when {
@@ -2316,7 +2343,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Daily sync 6:00 AM', tip: 'Apple Watch auto-syncs overnight data at 6:00 AM local time. Ingest is passive; runs regardless of agent activity.' },
       source: { v: 'Apple Watch health kit', tip: 'Total sleep, sleep stages, resting heart rate, efficiency score. 14-day rolling baseline for comparison.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Device-reported data. No agent judgment applied to the numbers themselves.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Device-reported data. No agent judgment applied to the numbers themselves.' },
       handoff: 'Folded into visit brief',
       log: 'aw9k2m3p',
     },
@@ -2354,8 +2381,8 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Lab order fulfilled', tip: 'A1C recheck ordered Dec 12 with a 6-week return window. Fulfilled Mar 30 — 12 days ahead of schedule.' },
       source: { v: 'Meridian Labs feed', tip: 'A1C, fasting glucose, and the Dec 12 order context. Cross-referenced against walking-adherence days to test the partial-input hypothesis.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic lab result. No agent judgment in the numbers.' },
-      handoff: 'Forwarded to Marcus in the Mar 30 share',
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic lab result. No agent judgment in the numbers.' },
+      handoff: 'Included in Mar 30 share to Marcus',
       log: 'lb3p7q2k',
     },
     related: [
@@ -2392,7 +2419,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Pattern match (October)', tip: 'Sleep drop + step downtrend + quiet outbound together match the Oct 2025 cycle. Escalation to the clinician dashboard, not to Marcus directly.' },
       source: { v: '14-day Apple Watch · outbound log', tip: 'Sleep trend, step trend, resting heart rate, outbound message log. Matched against the Oct 2025 cycle for shape.' },
       confidence: { level: 'High', pct: '87%', tip: 'All three variables present in the same shape. The choose-not-to-escalate-to-Marcus call is the harder judgment and accounts for the remainder.' },
-      handoff: 'Dr. Chen — surfaced to clinician dashboard',
+      handoff: 'Dr. Chen — on clinician dashboard',
       log: 'pd7m3k1n',
     },
     related: [
@@ -2409,7 +2436,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: '7-day adherence window', tip: 'Two-week rolling window hit full adherence (5 of 5 in weeks 1 and 2). Logged as a positive pattern; no outbound needed.' },
       source: { v: 'Apple Watch steps · start-time cluster', tip: 'Step counts, walk start times (6:15–7:00 AM), and co-location with Jessica\'s practice schedule.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic adherence count. The interpretation (daughter\'s schedule did the work) is scored separately in the body.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic adherence count. The interpretation (daughter\'s schedule did the work) is scored separately in the body.' },
       handoff: 'Logged; basis for A1C story',
       log: 'at2p8q1m',
     },
@@ -2428,7 +2455,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Calendar context · tournament', tip: 'Jessica\'s soccer tournament detected on the shared calendar. Logistics-framed check-ins perform above baseline during quiet stretches.' },
       source: { v: 'Calendar · 2024 re-engagement log', tip: 'Jessica\'s practice and tournament schedule; Marcus\'s re-engagement rate to logistics-framed vs health-framed messages.' },
       confidence: { level: 'High', pct: '89%', tip: 'Logistics framing outperforms health framing 6:1 in Marcus\'s own response history during quiet windows.' },
-      handoff: 'Four-day walking streak observed post-send',
+      handoff: 'Four-day walking streak followed',
       log: 'cc4k7p2m',
     },
     related: [
@@ -2447,7 +2474,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Visit recording uploaded', tip: 'New visit audio triggers automatic intake processing — transcription, speaker separation, and key-quote indexing.' },
       source: { v: '8min 42s visit audio', tip: 'Full audio of the Jan 15 visit. Speaker-separated transcription; key quote tagged for surface in future contexts.' },
       confidence: { level: 'Very high', pct: '96%', tip: 'Transcription fidelity is high; the quote-tagging judgment (which line to index as the anchor) is the lower-confidence part.' },
-      handoff: 'Indexed; referenced in later re-engagement',
+      handoff: 'Indexed; used in re-engagement',
       log: 'ip9k3m7p',
     },
     related: [
@@ -2464,7 +2491,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Daily sync 7:00 AM', tip: 'Apple Watch auto-sync. Flagged when daily steps exceed the rolling 7-day average by a meaningful margin.' },
       source: { v: 'Apple Watch steps · calendar', tip: 'Step count, start time, co-location with Jessica\'s practice drop-off. Compared against the Feb cluster pattern.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Device data; the pattern-match note is separately based on start-time clustering.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Device data; the pattern-match note is separately based on start-time clustering.' },
       handoff: 'Logged as pattern-rebuild signal',
       log: 'aw7m2p9k',
     },
@@ -2482,8 +2509,8 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Pharmacy webhook', tip: 'CVS sends a real-time webhook at pickup. Used as a ground-truth adherence variable — medication is the lever Marcus pulls reliably even when the rest slips.' },
       source: { v: 'CVS pharmacy feed', tip: 'Pickup timestamp, copay, dose confirmation. Five consecutive on-schedule fills from Dec 12 through Mar 25.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic event from the pharmacy.' },
-      handoff: 'Used as baseline during silence windows',
+      confidence: { level: 'Very high', pct: '99%', tip: 'Deterministic event from the pharmacy.' },
+      handoff: 'Baseline during silence windows',
       log: 'rx4k7p2j',
     },
     related: [
@@ -2521,7 +2548,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: 'Stalled action timer (8wk)', tip: 'Committed action with no movement for 8 weeks fires a gentle-reminder. This is the second reminder in-period.' },
       source: { v: 'Plan · prior reminder cadence', tip: 'Jan 15 visit plan item; prior reminder log; the 3+ reminder threshold at which the channel becomes noise.' },
       confidence: { level: 'High', pct: '83%', tip: 'The format is proven; the choice not to send a third reminder is the higher-judgment call in this entry.' },
-      handoff: 'Dr. Chen — warm handoff at May 1 visit',
+      handoff: 'Dr. Chen — handle at May 1 visit',
       log: 'gr5p2m8k',
     },
     related: [
@@ -2539,7 +2566,7 @@ const ACTIVITY_DETAILS = {
       whyNow: { v: '4-day downtrend', tip: 'Steps declining four days in a row fires a watch flag. Combined with the sleep drop this week, triggers the pattern-detector.' },
       source: { v: 'Apple Watch steps · sleep series', tip: 'Rolling step trend and the earlier sleep-drop event. Variables matched against the Oct 2025 cycle for shape.' },
       confidence: { level: 'Medium', pct: '74%', tip: 'Watch-level confidence. High enough to monitor; not high enough to escalate to Marcus yet.' },
-      handoff: 'Watch; escalate if silence extends >5d',
+      handoff: 'Watch; escalate if silence >5d',
       log: 'pd2k7m9p',
     },
     related: [
@@ -2576,7 +2603,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Daily sync 6:30 AM', tip: 'Apple Watch auto-sync. Flagged when a post-dip recovery week starts to take shape.' },
       source: { v: 'Apple Watch steps · start-time variance', tip: 'Step counts and walk start-time variance (6:18, 6:42, 6:50 — suggests deciding each morning, not autopilot).' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Device data; the fragile-vs-stable read is separately scored and conservative — log but don\'t celebrate.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Device data; the fragile-vs-stable read is separately scored and conservative — log but don\'t celebrate.' },
       handoff: 'Watch for 4-week confirmation',
       log: 'at4k8m1p',
     },
@@ -2594,7 +2621,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Refill window 7-day', tip: 'Standard 7-day pre-fill ping sent by CVS, independent of agent action. Logged for the adherence record.' },
       source: { v: 'CVS pharmacy feed', tip: 'Ping event and the subsequent pickup timestamp (9:42 AM next morning).' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Automated pharmacy event; no agent judgment.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Automated pharmacy event; no agent judgment.' },
       handoff: 'Logged; adherence baseline',
       log: 'rr3k7m9p',
     },
@@ -2611,7 +2638,7 @@ const ACTIVITY_DETAILS = {
     meta: {
       whyNow: { v: 'Weekly adherence window', tip: 'First four-of-five-days walking week triggers the habit-forming watch flag.' },
       source: { v: 'Apple Watch steps · time cluster', tip: 'Four-morning step counts, tight start-time cluster (6:15–7:00), co-location with Jessica\'s practice drop-off.' },
-      confidence: { level: 'Very high', pct: '—', tip: 'Adherence count is deterministic; the habit-forming-not-a-streak read uses start-time clustering as evidence.' },
+      confidence: { level: 'Very high', pct: '99%', tip: 'Adherence count is deterministic; the habit-forming-not-a-streak read uses start-time clustering as evidence.' },
       handoff: 'Watch for two-week confirmation',
       log: 'at1k4m7p',
     },
@@ -2679,7 +2706,7 @@ function defaultDetail(key, row) {
     meta: {
       whyNow: { v: 'Routine sync', tip: 'Auto-logged as part of the ongoing signal ingest — no specific trigger beyond the regular data refresh.' },
       source: { v: tagText, tip: 'Primary data source for this event. See body for specifics.' },
-      confidence: { level: 'Medium', pct: '—', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
+      confidence: { level: 'Medium', pct: '70%', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
       handoff: 'Dr. Chen, next visit prep',
       log: key,
     },
@@ -2710,7 +2737,7 @@ function openDetail(key) {
     </div>
     <div class="ad-meta-row">
       <span class="k">Confidence</span>
-      <span class="v has-tip">${m.confidence.level} · ${m.confidence.pct}<span class="tip">${m.confidence.tip}</span></span>
+      <span class="v has-tip">${m.confidence.level} (${m.confidence.pct})<span class="tip">${m.confidence.tip}</span></span>
     </div>
     <div class="ad-meta-row">
       <span class="k">Handoff</span>
