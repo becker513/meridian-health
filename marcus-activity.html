@@ -1418,7 +1418,8 @@
     background: rgba(0,0,0,0.022);
     padding-left: 24px;
   }
-  .activity-row:hover::after { opacity: 0; }
+  .activity-row:hover::after,
+  .activity-row:has(+ .activity-row:hover)::after { opacity: 0; }
   /* Stagger the entrance — 30ms per row */
   .activity-row:nth-of-type(1)  { animation-delay: 0.05s; }
   .activity-row:nth-of-type(2)  { animation-delay: 0.08s; }
@@ -1631,6 +1632,43 @@
     padding: 2px 6px;
     border-radius: 4px;
   }
+  .ad-meta-row .v.has-tip {
+    position: relative;
+    border-bottom: 1px dotted rgba(0,0,0,0.28);
+    cursor: help;
+    padding-bottom: 1px;
+  }
+  .ad-meta-row .v.has-tip .tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: -0.05px;
+    width: 280px;
+    white-space: normal;
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.18s var(--ease-out), transform 0.22s var(--ease-out);
+    z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .ad-meta-row .v.has-tip:hover .tip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .ad-meta-row.ad-meta-foot {
+    border-top: 1px solid rgba(0,0,0,0.10);
+    margin-top: 6px;
+    padding-top: 14px;
+  }
   .ad-related-row {
     font-size: 13px;
     line-height: 18px;
@@ -1643,7 +1681,11 @@
     transition: color 0.18s;
   }
   .ad-related-row:first-of-type { border-top: none; padding-top: 0; }
-  .ad-related-row:hover { color: #000; }
+  .ad-related-row { cursor: default; }
+  .ad-related-row.is-link { cursor: pointer; }
+  .ad-related-row.is-link:hover { color: #000; border-top-color: transparent; }
+  .ad-related-row.is-link:hover + .ad-related-row { border-top-color: transparent; }
+  .ad-related-row.is-link:hover .when { color: #555; }
   .ad-related-row .when {
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
@@ -2253,11 +2295,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Pulled the last six weeks of signal into a single brief: 23 walking days out of 42, two A1C lab values, four sleep dips, two missed counseling reminders, and the October pattern that this all rhymes with.</p>
       <p>The hierarchy is intentional. Lead with the A1C improvement — Marcus is going to walk in expecting bad news and that's a worse opening than the truth. Then name the stress cycle out loud, because this is the third time and Dr. Chen needs to see it as a pattern, not an incident.</p>
       <p>Counseling stays on the table but I'm recommending a warm handoff this time, not another reminder. The text-based nudges have been tried twice and ignored both times. Same input, different output is the definition.</p>`,
-    meta: { status: 'Complete', trigger: 'Visit T-30 days', source: 'Agent', workflow: 'visit-prep v3', confidence: '0.91', session: 'br18kx9p…7e2c1' },
+    meta: {
+      whyNow: { v: 'Visit T-30 days', tip: 'May 1 visit is 30 days out. Pre-visit brief generated in the standard T-30 window.' },
+      source: { v: '6 weeks adherence · sleep · labs', tip: '42 days of Apple Watch signal, two A1C lab values, pharmacy refill history, and prior-visit clinical notes. Sequenced by impact, not chronology.' },
+      confidence: { level: 'High', pct: '91%', tip: 'All three headline recommendations (lead with A1C, name the stress cycle, warm handoff for counseling) are each supported by independent prior-period patterns.' },
+      handoff: 'Dr. Chen, before May 1 visit',
+      log: 'br18kx9p',
+    },
     related: [
-      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
-      { when: 'Feb 18', text: 'Visit summary uploaded from clinical notes' },
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs', key: 'mar30-lab' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
+      { when: 'Feb 18', text: 'Visit summary uploaded from clinical notes', key: 'feb18-notes' },
     ],
   },
   'apr1-watch': {
@@ -2265,10 +2313,16 @@ const ACTIVITY_DETAILS = {
     title: 'Apple Watch sync — overnight sleep',
     body: `<p>7h 12m total sleep. 1h 48m deep, 1h 22m REM, 4h 02m core. Sleep efficiency 89%. Resting heart rate 58 bpm — back to baseline.</p>
       <p>This is the fourth consecutive night above 6.5 hours. After the March 22 dip, the sleep curve has been climbing steadily without intervention. No agent action.</p>`,
-    meta: { status: 'Observed', trigger: 'Daily sync 6:00 AM', source: 'Apple Watch', workflow: 'health-ingest v1', confidence: '—', session: 'aw9k2m3p…f01a8' },
+    meta: {
+      whyNow: { v: 'Daily sync 6:00 AM', tip: 'Apple Watch auto-syncs overnight data at 6:00 AM local time. Ingest is passive; runs regardless of agent activity.' },
+      source: { v: 'Apple Watch health kit', tip: 'Total sleep, sleep stages, resting heart rate, efficiency score. 14-day rolling baseline for comparison.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Device-reported data. No agent judgment applied to the numbers themselves.' },
+      handoff: 'Folded into visit brief',
+      log: 'aw9k2m3p',
+    },
     related: [
-      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
-      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m', key: 'mar22-sleep' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit', key: 'apr1-brief' },
     ],
   },
   'mar30-share': {
@@ -2278,11 +2332,17 @@ const ACTIVITY_DETAILS = {
       <p>I framed it carefully: declarative, no exclamation marks, no emoji. Just <em>"Your labs are back. A1C is down — the work showed up in your blood."</em></p>
       <div class="ad-quote">"no way."</div>
       <p>Within four hours he replied. That's the first inbound message in twelve days. The silence was a stress pattern, not a dropout — I read it correctly. The next move is Dr. Chen's.</p>`,
-    meta: { status: 'Complete', trigger: 'Lab result received', source: 'Agent', workflow: 'lab-result-share v2', confidence: '0.94', session: 'j57a7ex7…4de37' },
+    meta: {
+      whyNow: { v: 'Lab result received', tip: 'Lab landed at 8:42 AM. Outbound share window opens immediately; send time within the window is agent-calibrated to Marcus\'s response history.' },
+      source: { v: 'Lab result · 2024 tone history', tip: 'The A1C figure and prior-year A1C for context, plus Marcus\'s response history to past health messages showing he misreads tone in his first hour.' },
+      confidence: { level: 'High', pct: '94%', tip: 'Declarative-not-celebratory framing and the 32-minute delay are both evidence-backed from Marcus\'s own response data.' },
+      handoff: 'Dr. Chen — covered in May 1 visit',
+      log: 'j57a7ex7',
+    },
     related: [
-      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
-      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs', key: 'mar30-lab' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
     ],
   },
   'mar30-lab': {
@@ -2291,10 +2351,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Hemoglobin A1C: <strong>6.9%</strong>, down from 7.1% in December. Fasting glucose 128 mg/dL, down from 142.</p>
       <p>I cross-referenced the result against the walking adherence: only 14 of 42 days were full 30-min walks, but those 14 were clustered in two strong weeks (Feb 23–Mar 1 and Mar 2–8). The number moved on partial input. That's the story of this visit.</p>
       <p>Lab order #MD-3483 was placed Dec 12 with a six-week return window. Ahead of schedule by twelve days.</p>`,
-    meta: { status: 'Complete', trigger: 'Lab order fulfilled', source: 'Meridian Labs', workflow: 'lab-ingest v1', confidence: '—', session: 'lb3p7q2k…8f4e1' },
+    meta: {
+      whyNow: { v: 'Lab order fulfilled', tip: 'A1C recheck ordered Dec 12 with a 6-week return window. Fulfilled Mar 30 — 12 days ahead of schedule.' },
+      source: { v: 'Meridian Labs feed', tip: 'A1C, fasting glucose, and the Dec 12 order context. Cross-referenced against walking-adherence days to test the partial-input hypothesis.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic lab result. No agent judgment in the numbers.' },
+      handoff: 'Forwarded to Marcus in the Mar 30 share',
+      log: 'lb3p7q2k',
+    },
     related: [
-      { when: 'Mar 30', text: 'Shared A1C result with Marcus' },
-      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+      { when: 'Mar 30', text: 'Shared A1C result with Marcus', key: 'mar30-share' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit', key: 'apr1-brief' },
     ],
   },
   'mar23-passive': {
@@ -2303,11 +2369,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Marcus stopped responding to messages on March 19. Refill picked up on schedule. No portal activity. Apple Watch still syncing — sleep down, steps down.</p>
       <p>I had two options. Send a third reminder or hold. I held. The October pattern says reminders during the dip don't move the needle and create resentment. The pattern also says he comes back when there's something to come back to — a result, a person, a logistics-shaped reason that isn't about him.</p>
       <p>So: no outbound messages. Continue ingesting health data. Wait for the lab.</p>`,
-    meta: { status: 'Decision', trigger: '12hr silence threshold', source: 'Agent', workflow: 'silence-handler v3', confidence: '0.81', session: 'sh4k9n2j…b7c2e' },
+    meta: {
+      whyNow: { v: '12hr silence threshold', tip: 'No response to two outbound messages plus portal inactivity within a 12-hour window. This is the hold-or-push decision gate.' },
+      source: { v: 'Oct pattern library · current signals', tip: 'The Oct 2025 cycle (sleep drop → walks stop → silence) is the reference pattern. Current-period signals matched it at 3 of 3 variables.' },
+      confidence: { level: 'High', pct: '81%', tip: 'Pattern-match confidence; the hold decision is conservative because the cost of a premature push is known (Oct 2025 precedent).' },
+      handoff: 'No action; ingest continues',
+      log: 'sh4k9n2j',
+    },
     related: [
-      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
-      { when: 'Mar 16', text: 'Reminded about counseling referral' },
-      { when: 'Mar 30', text: 'Shared A1C result with Marcus' },
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m', key: 'mar22-sleep' },
+      { when: 'Mar 16', text: 'Reminded about counseling referral', key: 'mar16-counsel' },
+      { when: 'Mar 30', text: 'Shared A1C result with Marcus', key: 'mar30-share' },
     ],
   },
   'mar9-flag': {
@@ -2316,11 +2388,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Sleep down four nights running. Steps in a four-day downtrend. Resting heart rate up 6 bpm from baseline. Marcus has gone quiet on outbound but is still responding to logistics texts about Jessica.</p>
       <p>This is the exact shape of the October pattern. Same upstream signal (sleep), same downstream behavior (walks stop), same emotional retreat. I surfaced it to Dr. Chen's clinician dashboard with a "watch" tag — not a "act" tag. There's nothing she can usefully do at this distance, but she should see it before May 1 so the visit doesn't catch her by surprise.</p>
       <p>I chose not to escalate to Marcus directly. The intervention point for this pattern isn't in the pattern; it's after, when there's something to point at.</p>`,
-    meta: { status: 'Decision · Escalated', trigger: 'Pattern match (October)', source: 'Agent', workflow: 'pattern-detector v4', confidence: '0.87', session: 'pd7m3k1n…9c4d2' },
+    meta: {
+      whyNow: { v: 'Pattern match (October)', tip: 'Sleep drop + step downtrend + quiet outbound together match the Oct 2025 cycle. Escalation to the clinician dashboard, not to Marcus directly.' },
+      source: { v: '14-day Apple Watch · outbound log', tip: 'Sleep trend, step trend, resting heart rate, outbound message log. Matched against the Oct 2025 cycle for shape.' },
+      confidence: { level: 'High', pct: '87%', tip: 'All three variables present in the same shape. The choose-not-to-escalate-to-Marcus call is the harder judgment and accounts for the remainder.' },
+      handoff: 'Dr. Chen — surfaced to clinician dashboard',
+      log: 'pd7m3k1n',
+    },
     related: [
-      { when: 'Mar 13', text: 'Steps declining sharply' },
-      { when: 'Mar 9', text: 'Sent soft check-in tied to tournament' },
-      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+      { when: 'Mar 13', text: 'Steps declining sharply', key: 'mar13-watch' },
+      { when: 'Mar 9', text: 'Sent soft check-in tied to tournament', key: 'mar9-checkin' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
     ],
   },
   'mar2-sustained': {
@@ -2328,10 +2406,16 @@ const ACTIVITY_DETAILS = {
     title: 'Walking sustained — 5 of 5 mornings',
     body: `<p>Two consecutive weeks of full walking adherence. All five mornings, all between 6:15 and 7:00 AM, all before Jessica's 7:15 practice drop-off.</p>
       <p>This is the period that moved the A1C number. I'm noting it now because the agent role here was almost zero — one tournament check-in on Feb 23, then nothing. Marcus did this. The job was to get out of the way and let the daughter's schedule do the work.</p>`,
-    meta: { status: 'Observed', trigger: '7-day adherence window', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at2p8q1m…f6e0a' },
+    meta: {
+      whyNow: { v: '7-day adherence window', tip: 'Two-week rolling window hit full adherence (5 of 5 in weeks 1 and 2). Logged as a positive pattern; no outbound needed.' },
+      source: { v: 'Apple Watch steps · start-time cluster', tip: 'Step counts, walk start times (6:15–7:00 AM), and co-location with Jessica\'s practice schedule.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic adherence count. The interpretation (daughter\'s schedule did the work) is scored separately in the body.' },
+      handoff: 'Logged; basis for A1C story',
+      log: 'at2p8q1m',
+    },
     related: [
-      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
-      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament', key: 'feb23-checkin' },
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs', key: 'mar30-lab' },
     ],
   },
   'feb23-checkin': {
@@ -2340,10 +2424,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>"Tournament weekend coming up. Want to walk her there in the morning?" Framed as logistics, not health. He said yes.</p>
       <p>He walked four mornings that week — all before her 7:15 AM practice drop-off. The plan Dr. Chen wrote in January said "30 minutes, five days a week, your route." The plan that worked said "walk your daughter to soccer."</p>
       <p>I'm logging this because it's the scaffolding of the next six weeks: every successful walking day from this point forward is anchored to Jessica's schedule, not the prescription.</p>`,
-    meta: { status: 'Complete', trigger: 'Calendar context · tournament', source: 'Agent', workflow: 'context-checkin v2', confidence: '0.89', session: 'cc4k7p2m…1b8f3' },
+    meta: {
+      whyNow: { v: 'Calendar context · tournament', tip: 'Jessica\'s soccer tournament detected on the shared calendar. Logistics-framed check-ins perform above baseline during quiet stretches.' },
+      source: { v: 'Calendar · 2024 re-engagement log', tip: 'Jessica\'s practice and tournament schedule; Marcus\'s re-engagement rate to logistics-framed vs health-framed messages.' },
+      confidence: { level: 'High', pct: '89%', tip: 'Logistics framing outperforms health framing 6:1 in Marcus\'s own response history during quiet windows.' },
+      handoff: 'Four-day walking streak observed post-send',
+      log: 'cc4k7p2m',
+    },
     related: [
-      { when: 'Feb 23', text: 'First sustained walking week recorded' },
-      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings' },
+      { when: 'Feb 23', text: 'First sustained walking week recorded', key: 'feb23-watch' },
+      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings', key: 'mar2-sustained' },
     ],
   },
   'jan15-intake': {
@@ -2353,10 +2443,16 @@ const ACTIVITY_DETAILS = {
       <p>Key quote tagged for surface in future contexts:</p>
       <div class="ad-quote">"I felt like a different person when I was walking every morning before practice."</div>
       <p>This becomes the anchor sentence for the rest of the period. When Marcus drops off in March, this is the line that reframes the silence — not as failure, but as distance from a self he already knows how to be.</p>`,
-    meta: { status: 'Complete', trigger: 'Visit recording uploaded', source: 'Clinical intake', workflow: 'intake-process v2', confidence: '0.96', session: 'ip9k3m7p…2d5e8' },
+    meta: {
+      whyNow: { v: 'Visit recording uploaded', tip: 'New visit audio triggers automatic intake processing — transcription, speaker separation, and key-quote indexing.' },
+      source: { v: '8min 42s visit audio', tip: 'Full audio of the Jan 15 visit. Speaker-separated transcription; key quote tagged for surface in future contexts.' },
+      confidence: { level: 'Very high', pct: '96%', tip: 'Transcription fidelity is high; the quote-tagging judgment (which line to index as the anchor) is the lower-confidence part.' },
+      handoff: 'Indexed; referenced in later re-engagement',
+      log: 'ip9k3m7p',
+    },
     related: [
-      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams' },
-      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams', key: 'jan22-referral' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament', key: 'feb23-checkin' },
     ],
   },
   'mar28-watch': {
@@ -2365,10 +2461,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>4,820 steps today. 1,140 above the rolling 7-day average of 3,680. Walked Jessica to her 7:15 AM practice this morning — the same anchor as Feb 23.</p>
       <p>The pattern is rebuilding around her schedule, not the prescription, but it's rebuilding. The shape I care about is the start time: 6:42 AM, which matches the Feb cluster (6:15–7:00). Different day, same routine.</p>
       <p>No outbound from me today. The data is enough.</p>`,
-    meta: { status: 'Observed', trigger: 'Daily sync 7:00 AM', source: 'Apple Watch', workflow: 'health-ingest v1', confidence: '—', session: 'aw7m2p9k…b3c4f' },
+    meta: {
+      whyNow: { v: 'Daily sync 7:00 AM', tip: 'Apple Watch auto-sync. Flagged when daily steps exceed the rolling 7-day average by a meaningful margin.' },
+      source: { v: 'Apple Watch steps · calendar', tip: 'Step count, start time, co-location with Jessica\'s practice drop-off. Compared against the Feb cluster pattern.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Device data; the pattern-match note is separately based on start-time clustering.' },
+      handoff: 'Logged as pattern-rebuild signal',
+      log: 'aw7m2p9k',
+    },
     related: [
-      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs' },
-      { when: 'Feb 23', text: 'First sustained walking week recorded' },
+      { when: 'Mar 30', text: 'A1C result processed at Meridian Labs', key: 'mar30-lab' },
+      { when: 'Feb 23', text: 'First sustained walking week recorded', key: 'feb23-watch' },
     ],
   },
   'mar25-cvs': {
@@ -2377,10 +2479,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Pickup logged at CVS Oak Street, 11:15 AM. Standard 30-day fill, Metformin 1000mg BID, no dose change. Insurance copay $4.20.</p>
       <p>The refill cadence has been steady for four months: Dec 12, Jan 11, Feb 10, Mar 11, Apr 10 (next). Five consecutive on-schedule pickups.</p>
       <p>The medication is the lever Marcus pulls reliably even when the rest of the plan slips. I take this as ground truth — the meds aren't the problem. When I'm deciding whether to escalate during a quiet stretch, the refill cadence is the variable I check first. As long as the pharmacy log keeps coming in on schedule, the silence isn't a dropout.</p>`,
-    meta: { status: 'Observed', trigger: 'Pharmacy webhook', source: 'CVS Pharmacy', workflow: 'rx-ingest v2', confidence: '—', session: 'rx4k7p2j…d8e1a' },
+    meta: {
+      whyNow: { v: 'Pharmacy webhook', tip: 'CVS sends a real-time webhook at pickup. Used as a ground-truth adherence variable — medication is the lever Marcus pulls reliably even when the rest slips.' },
+      source: { v: 'CVS pharmacy feed', tip: 'Pickup timestamp, copay, dose confirmation. Five consecutive on-schedule fills from Dec 12 through Mar 25.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Deterministic event from the pharmacy.' },
+      handoff: 'Used as baseline during silence windows',
+      log: 'rx4k7p2j',
+    },
     related: [
-      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
-      { when: 'Feb 26', text: 'CVS refill auto-reminder sent' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
+      { when: 'Feb 26', text: 'CVS refill auto-reminder sent', key: 'feb26-cvs' },
     ],
   },
   'mar22-sleep': {
@@ -2389,11 +2497,17 @@ const ACTIVITY_DETAILS = {
     body: `<p>Total sleep 5h 40m. Deep 1h 02m, REM 0h 48m, core 3h 50m. Sleep efficiency 78%, down from a 14-day baseline of 88%.</p>
       <p>This is the fourth consecutive night under six hours. Resting heart rate up 6 bpm from baseline — small but consistent across all four nights.</p>
       <p>This is the upstream signal of the October cycle. Sleep collapses first, walks stop second, communication retreats third. I'm watching but not acting yet. Marcus is still responsive to logistics texts about Jessica's tournament, and that channel is open. The right move is to keep the channel intact, not to use it for health pressure.</p>`,
-    meta: { status: 'Flagged · Watch', trigger: '4-day sleep threshold', source: 'Apple Watch', workflow: 'sleep-pattern v3', confidence: '0.78', session: 'sp8k3m1p…7c2d4' },
+    meta: {
+      whyNow: { v: '4-day sleep threshold', tip: 'Four consecutive nights under 6 hours fires the sleep-pattern flag. This is the upstream variable of the Oct cycle.' },
+      source: { v: 'Apple Watch sleep · HRV', tip: 'Sleep stages, total sleep, resting heart rate. 14-day baseline (88% efficiency) for comparison.' },
+      confidence: { level: 'Medium', pct: '78%', tip: 'Pattern-match confidence. The threshold reliably precedes walking and communication drops, but not deterministically.' },
+      handoff: 'Watch flag; no escalation yet',
+      log: 'sp8k3m1p',
+    },
     related: [
-      { when: 'Mar 13', text: 'Steps declining sharply' },
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
-      { when: 'Mar 23', text: 'Shifted to passive monitoring' },
+      { when: 'Mar 13', text: 'Steps declining sharply', key: 'mar13-watch' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
+      { when: 'Mar 23', text: 'Shifted to passive monitoring', key: 'mar23-passive' },
     ],
   },
   'mar16-counsel': {
@@ -2403,10 +2517,16 @@ const ACTIVITY_DETAILS = {
       <div class="ad-quote">"yeah, I know"</div>
       <p>Marcus replied 18 minutes later. That's an acknowledgment without commitment — the signature pattern of a stalled action. He's not refusing, he's not engaging, he's putting the conversation on pause.</p>
       <p>I'm not sending a third reminder. Two in a six-week window is the threshold; beyond that, the channel becomes noise and I lose the thing that's actually working (logistics-shaped, low-pressure pings). I'm flagging this for in-person handoff at the May 1 visit instead — Dr. Chen can do in two minutes what three of my texts can't.</p>`,
-    meta: { status: 'Complete', trigger: 'Stalled action timer (8wk)', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.83', session: 'gr5p2m8k…1f3a7' },
+    meta: {
+      whyNow: { v: 'Stalled action timer (8wk)', tip: 'Committed action with no movement for 8 weeks fires a gentle-reminder. This is the second reminder in-period.' },
+      source: { v: 'Plan · prior reminder cadence', tip: 'Jan 15 visit plan item; prior reminder log; the 3+ reminder threshold at which the channel becomes noise.' },
+      confidence: { level: 'High', pct: '83%', tip: 'The format is proven; the choice not to send a third reminder is the higher-judgment call in this entry.' },
+      handoff: 'Dr. Chen — warm handoff at May 1 visit',
+      log: 'gr5p2m8k',
+    },
     related: [
-      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams' },
-      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+      { when: 'Jan 22', text: 'Counseling referral sent to Dr. Williams', key: 'jan22-referral' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit', key: 'apr1-brief' },
     ],
   },
   'mar13-watch': {
@@ -2415,10 +2535,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Daily steps over the last four days: <strong>6,200 → 4,100 → 2,800 → 1,900</strong>. A 70% drop in four days.</p>
       <p>Combined with the sleep dip from earlier this week, this is the upstream signal pattern matching October exactly. The pattern detector returned confidence 0.74 — high enough to watch, not high enough to escalate to Marcus.</p>
       <p>I'm continuing passive monitoring. The next inflection point will be either (a) the steps recover on their own as the work deadline passes, or (b) the silence on outbound messages extends past 5 days, in which case I'll flag to Dr. Chen.</p>`,
-    meta: { status: 'Flagged · Watch', trigger: '4-day downtrend', source: 'Apple Watch', workflow: 'pattern-detector v4', confidence: '0.74', session: 'pd2k7m9p…4b8e1' },
+    meta: {
+      whyNow: { v: '4-day downtrend', tip: 'Steps declining four days in a row fires a watch flag. Combined with the sleep drop this week, triggers the pattern-detector.' },
+      source: { v: 'Apple Watch steps · sleep series', tip: 'Rolling step trend and the earlier sleep-drop event. Variables matched against the Oct 2025 cycle for shape.' },
+      confidence: { level: 'Medium', pct: '74%', tip: 'Watch-level confidence. High enough to monitor; not high enough to escalate to Marcus yet.' },
+      handoff: 'Watch; escalate if silence extends >5d',
+      log: 'pd2k7m9p',
+    },
     related: [
-      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m' },
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
+      { when: 'Mar 22', text: 'Sleep dropped to 5h 40m', key: 'mar22-sleep' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
     ],
   },
   'mar9-checkin': {
@@ -2429,10 +2555,16 @@ const ACTIVITY_DETAILS = {
       <p>The framing is deliberate. I'm asking about a thing he cares about (Jessica), not the thing I want him to do (walk). Logistics, not health.</p>
       <p>He replied "yeah" three minutes later. First inbound message in three days. The channel is still open; the silence is selective, not total. That's a different shape than dropout — it's filtered communication, and I can still reach him through the right filter.</p>
       <p>This becomes the template for re-engagement during quiet stretches: anchor the message in his world, not in his health goals.</p>`,
-    meta: { status: 'Complete', trigger: 'Calendar context · tournament', source: 'Agent', workflow: 'context-checkin v2', confidence: '0.91', session: 'cc7m3k1p…9d2e8' },
+    meta: {
+      whyNow: { v: 'Calendar context · tournament', tip: 'Jessica\'s regional tournament on Saturday. Logistics-framed check-ins during quiet windows index above baseline for Marcus.' },
+      source: { v: 'Calendar · re-engagement log', tip: 'Shared calendar event; Marcus\'s historical response rates to logistics vs health framing during silences.' },
+      confidence: { level: 'High', pct: '91%', tip: 'Same framing shape that worked on Feb 23; proven in Marcus\'s own response history.' },
+      handoff: 'Channel re-opened; next moves staged',
+      log: 'cc7m3k1p',
+    },
     related: [
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
-      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament', key: 'feb23-checkin' },
     ],
   },
   'mar5-resume': {
@@ -2441,10 +2573,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>3 of 5 mornings this week. All before Jessica's 7:15 practice. Average distance 1.1 miles, average pace 18:00/mile.</p>
       <p>I'm reading the variance in start times — 6:18, 6:42, 6:50 — as evidence that the routine is being rebuilt, not maintained. He's deciding each morning, not running on autopilot. That's fragile.</p>
       <p>I'm logging the pattern but not celebrating yet. The October arc had a similar week-after-the-dip recovery and held for nine days before collapsing again. I'll wait until I see four weeks of data before naming this a trend.</p>`,
-    meta: { status: 'Observed', trigger: 'Daily sync 6:30 AM', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at4k8m1p…6c3f9' },
+    meta: {
+      whyNow: { v: 'Daily sync 6:30 AM', tip: 'Apple Watch auto-sync. Flagged when a post-dip recovery week starts to take shape.' },
+      source: { v: 'Apple Watch steps · start-time variance', tip: 'Step counts and walk start-time variance (6:18, 6:42, 6:50 — suggests deciding each morning, not autopilot).' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Device data; the fragile-vs-stable read is separately scored and conservative — log but don\'t celebrate.' },
+      handoff: 'Watch for 4-week confirmation',
+      log: 'at4k8m1p',
+    },
     related: [
-      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen' },
-      { when: 'Mar 13', text: 'Steps declining sharply' },
+      { when: 'Mar 9', text: 'Flagged stress pattern to Dr. Chen', key: 'mar9-flag' },
+      { when: 'Mar 13', text: 'Steps declining sharply', key: 'mar13-watch' },
     ],
   },
   'feb26-cvs': {
@@ -2453,9 +2591,15 @@ const ACTIVITY_DETAILS = {
     body: `<p>Standard 7-day pre-fill ping sent at 11:00 AM. Metformin 1000mg BID, 30-day supply, CVS Oak Street.</p>
       <p>This is automated routine — CVS sends the ping, I just log it for the adherence record. Marcus picked up the next morning at 9:42 AM. The cadence is steady.</p>
       <p>Logging this because the pharmacy ping is one of my most reliable signals: if Marcus picks up within 48 hours of the reminder, I treat the medication as on track without needing to ask him.</p>`,
-    meta: { status: 'Complete', trigger: 'Refill window 7-day', source: 'CVS Pharmacy', workflow: 'rx-reminder v1', confidence: '—', session: 'rr3k7m9p…2b4d8' },
+    meta: {
+      whyNow: { v: 'Refill window 7-day', tip: 'Standard 7-day pre-fill ping sent by CVS, independent of agent action. Logged for the adherence record.' },
+      source: { v: 'CVS pharmacy feed', tip: 'Ping event and the subsequent pickup timestamp (9:42 AM next morning).' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Automated pharmacy event; no agent judgment.' },
+      handoff: 'Logged; adherence baseline',
+      log: 'rr3k7m9p',
+    },
     related: [
-      { when: 'Mar 25', text: 'Metformin refill picked up at CVS' },
+      { when: 'Mar 25', text: 'Metformin refill picked up at CVS', key: 'mar25-cvs' },
     ],
   },
   'feb23-watch': {
@@ -2464,10 +2608,16 @@ const ACTIVITY_DETAILS = {
     body: `<p>Four of five mornings this week. All between 6:15 and 7:00 AM, all before Jessica's 7:15 practice drop-off. Average distance 1.2 miles, average pace 17:30/mile.</p>
       <p>The shape of a habit forming, not a streak. The start times cluster tightly (6:15, 6:22, 6:18, 6:30) which means he's not deciding each morning — he's anchoring to the practice schedule and moving on autopilot.</p>
       <p>The previous attempt (October) had a similar opening week and held for three weeks before collapsing. I'll watch for the same shape this time but won't surface anything until I've seen at least two weeks of data.</p>`,
-    meta: { status: 'Observed', trigger: 'Weekly adherence window', source: 'Apple Watch', workflow: 'adherence-track v2', confidence: '—', session: 'at1k4m7p…5e9c2' },
+    meta: {
+      whyNow: { v: 'Weekly adherence window', tip: 'First four-of-five-days walking week triggers the habit-forming watch flag.' },
+      source: { v: 'Apple Watch steps · time cluster', tip: 'Four-morning step counts, tight start-time cluster (6:15–7:00), co-location with Jessica\'s practice drop-off.' },
+      confidence: { level: 'Very high', pct: '—', tip: 'Adherence count is deterministic; the habit-forming-not-a-streak read uses start-time clustering as evidence.' },
+      handoff: 'Watch for two-week confirmation',
+      log: 'at1k4m7p',
+    },
     related: [
-      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament' },
-      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings' },
+      { when: 'Feb 23', text: 'Sent check-in tied to soccer tournament', key: 'feb23-checkin' },
+      { when: 'Mar 2', text: 'Walking sustained — 5 of 5 mornings', key: 'mar2-sustained' },
     ],
   },
   'feb18-notes': {
@@ -2482,10 +2632,16 @@ const ACTIVITY_DETAILS = {
         <li>Hold Metformin 1000mg BID, no dose change</li>
       </ul>
       <p>This becomes my ground truth for the period — the prescription against which I measure adherence and decide when to surface a signal vs. when to hold. Every reminder I send and every flag I raise references back to this document.</p>`,
-    meta: { status: 'Complete', trigger: 'Clinical notes uploaded', source: 'Clinical notes', workflow: 'note-ingest v2', confidence: '0.94', session: 'ni8k3p1m…7d2f5' },
+    meta: {
+      whyNow: { v: 'Clinical notes uploaded', tip: 'New clinical notes trigger automatic ingest and indexing. This becomes the period\'s ground-truth plan.' },
+      source: { v: 'Dr. Chen Jan 15 notes (1,247 words)', tip: 'Four sections: HPI, Plan, Med Rec, Follow-up. Key plan elements tagged for downstream reminders and flags.' },
+      confidence: { level: 'High', pct: '94%', tip: 'Ingest fidelity is high; the plan-element extraction (what counts as a commitment) is the lower-confidence part.' },
+      handoff: 'Ground truth for the period',
+      log: 'ni8k3p1m',
+    },
     related: [
-      { when: 'Jan 15', text: 'Intake recording transcribed and indexed' },
-      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit' },
+      { when: 'Jan 15', text: 'Intake recording transcribed and indexed', key: 'jan15-intake' },
+      { when: 'Apr 1', text: 'Briefing assembled for May 1 visit', key: 'apr1-brief' },
     ],
   },
   'jan22-referral': {
@@ -2495,10 +2651,16 @@ const ACTIVITY_DETAILS = {
       <div class="ad-quote">"Dr. Chen mentioned this last visit — Dr. Williams has Thursday afternoons open if you want to set something up. No rush."</div>
       <p>This is the first reminder. I'll send a second in 8 weeks if there's no acknowledgment. Beyond that, I'll route to in-person handoff at the next visit — texts have a half-life on this kind of action.</p>
       <p>No reply yet. That's not unusual for first-touch on a referral; I won't read silence here as resistance.</p>`,
-    meta: { status: 'Complete · No reply', trigger: 'Plan item · counseling', source: 'Agent', workflow: 'gentle-reminder v3', confidence: '0.88', session: 'gr2k8m1p…4c7e3' },
+    meta: {
+      whyNow: { v: 'Plan item · counseling', tip: 'Visit plan included a counseling referral. First-touch reminder sent at the standard one-week post-visit window.' },
+      source: { v: 'Visit plan · 2024 referral history', tip: 'Plan item from Jan 15 notes; historical baseline showing first-touch referrals often get no reply.' },
+      confidence: { level: 'High', pct: '88%', tip: 'Framing is evidence-backed; the decision to send a second reminder (8 weeks out) is the downstream scheduled action.' },
+      handoff: 'Second reminder scheduled T+8wk',
+      log: 'gr2k8m1p',
+    },
     related: [
-      { when: 'Jan 15', text: 'Intake recording transcribed and indexed' },
-      { when: 'Mar 16', text: 'Reminded about counseling referral' },
+      { when: 'Jan 15', text: 'Intake recording transcribed and indexed', key: 'jan15-intake' },
+      { when: 'Mar 16', text: 'Reminded about counseling referral', key: 'mar16-counsel' },
     ],
   },
 };
@@ -2515,12 +2677,11 @@ function defaultDetail(key, row) {
     title: title,
     body: '<p>' + body + '</p>',
     meta: {
-      status: 'Observed',
-      trigger: 'Routine sync',
-      source: tagText,
-      workflow: 'log v1',
-      confidence: '—',
-      session: key + '…0001',
+      whyNow: { v: 'Routine sync', tip: 'Auto-logged as part of the ongoing signal ingest — no specific trigger beyond the regular data refresh.' },
+      source: { v: tagText, tip: 'Primary data source for this event. See body for specifics.' },
+      confidence: { level: 'Medium', pct: '—', tip: 'Default confidence — this entry does not have a rich reasoning trace attached.' },
+      handoff: 'Dr. Chen, next visit prep',
+      log: key,
     },
     related: [],
   };
@@ -2535,16 +2696,30 @@ function openDetail(key) {
   document.getElementById('ad-title').textContent = data.title;
   document.getElementById('ad-body').innerHTML = data.body;
 
-  // Run information card
+  // Run context card
   const m = data.meta;
   document.getElementById('ad-meta-card').innerHTML = `
-    <div class="ad-meta-label">Run information</div>
-    <div class="ad-meta-row"><span class="k">Status</span><span class="v ${m.status.includes('Complete') ? 'green' : ''}">${m.status}</span></div>
-    <div class="ad-meta-row"><span class="k">Trigger</span><span class="v">${m.trigger}</span></div>
-    <div class="ad-meta-row"><span class="k">Source</span><span class="v">${m.source}</span></div>
-    <div class="ad-meta-row"><span class="k">Workflow</span><span class="v">${m.workflow}</span></div>
-    <div class="ad-meta-row"><span class="k">Confidence</span><span class="v">${m.confidence}</span></div>
-    <div class="ad-meta-row"><span class="k">Session ID</span><span class="v"><code>${m.session}</code></span></div>
+    <div class="ad-meta-label">Run Context</div>
+    <div class="ad-meta-row">
+      <span class="k">Why now</span>
+      <span class="v has-tip">${m.whyNow.v}<span class="tip">${m.whyNow.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Source</span>
+      <span class="v has-tip">${m.source.v}<span class="tip">${m.source.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Confidence</span>
+      <span class="v has-tip">${m.confidence.level} · ${m.confidence.pct}<span class="tip">${m.confidence.tip}</span></span>
+    </div>
+    <div class="ad-meta-row">
+      <span class="k">Handoff</span>
+      <span class="v">${m.handoff}</span>
+    </div>
+    <div class="ad-meta-row ad-meta-foot">
+      <span class="k">Agent log</span>
+      <span class="v"><code>${m.log}</code></span>
+    </div>
   `;
 
   // Related card
@@ -2552,7 +2727,7 @@ function openDetail(key) {
   if (data.related && data.related.length > 0) {
     relatedCard.innerHTML = `
       <div class="ad-meta-label">Related</div>
-      ${data.related.map(r => `<div class="ad-related-row"><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
+      ${data.related.map(r => `<div class="ad-related-row${r.key ? ' is-link' : ''}"${r.key ? ` onclick="openDetail('${r.key}')"` : ''}><span class="when">${r.when}</span><span>${r.text}</span></div>`).join('')}
     `;
     relatedCard.style.display = '';
   } else {
