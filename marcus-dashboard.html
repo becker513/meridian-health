@@ -1875,47 +1875,90 @@ function sendInput(e) {
   for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
   ask(t, reply);
 }
+function _chatCleanup(panel) {
+  panel.style.height = '';
+  panel.style.width = '';
+  panel._chatBusy = false;
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+}
+function _chatOnDone(panel, after) {
+  // Clean up previous listeners/timers from any interrupted transition
+  if (panel._chatTransitionHandler) {
+    panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+    panel._chatTransitionHandler = null;
+  }
+  if (panel._chatFallbackTimer) {
+    clearTimeout(panel._chatFallbackTimer);
+    panel._chatFallbackTimer = null;
+  }
+  const handler = (e) => {
+    if (e.target !== panel) return;
+    if (e.propertyName !== 'height') return;
+    panel.removeEventListener('transitionend', handler);
+    panel._chatTransitionHandler = null;
+    if (panel._chatFallbackTimer) {
+      clearTimeout(panel._chatFallbackTimer);
+      panel._chatFallbackTimer = null;
+    }
+    after();
+  };
+  panel._chatTransitionHandler = handler;
+  panel.addEventListener('transitionend', handler);
+  // Fallback if transitionend never fires (tab backgrounded, etc.)
+  panel._chatFallbackTimer = setTimeout(() => {
+    if (panel._chatTransitionHandler) {
+      panel.removeEventListener('transitionend', panel._chatTransitionHandler);
+      panel._chatTransitionHandler = null;
+    }
+    panel._chatFallbackTimer = null;
+    after();
+  }, 700);
+}
 function collapseChat() {
   const panel = document.getElementById('chat-panel');
   if (panel.classList.contains('collapsed')) return;
   const input = document.getElementById('chat-input');
   if (input) input.blur();
-  // Cancel any pending expand cleanup
-  if (window._chatExpandTimer) {
-    clearTimeout(window._chatExpandTimer);
-    window._chatExpandTimer = null;
-  }
-  // Lock current dimensions so transition has a starting point
+  _chatCleanup(panel); // abort any in-flight expand
+  // Lock current height explicitly, add class, then transition to collapsed target.
+  // Keeping inline styles set to the target ensures a fully explicit transition
+  // and prevents the shell/content opacity race that caused the white-pill state.
   panel.style.height = panel.offsetHeight + 'px';
-  panel.style.width = panel.offsetWidth + 'px';
   panel.offsetHeight; // reflow
   panel.classList.add('collapsed');
-  panel.style.height = '';
-  panel.style.width = '';
+  panel.style.height = '52px';
+  panel._chatBusy = true;
+  _chatOnDone(panel, () => { _chatCleanup(panel); });
 }
 function expandChat() {
   const panel = document.getElementById('chat-panel');
   if (!panel.classList.contains('collapsed')) return;
-  // Temporarily remove class to measure natural height
+  _chatCleanup(panel); // abort any in-flight collapse
+  // Measure natural height with transitions off
   panel.classList.remove('collapsed');
   panel.style.transition = 'none';
   panel.style.height = 'auto';
-  panel.style.width = '';
   const targetH = panel.offsetHeight;
-  // Snap back to collapsed dims
+  // Snap back to collapsed, flush transition override, then animate open
   panel.style.height = '52px';
   panel.classList.add('collapsed');
   panel.offsetHeight; // reflow
   panel.style.transition = '';
-  // Now expand to target
   panel.classList.remove('collapsed');
   panel.style.height = targetH + 'px';
-  window._chatExpandTimer = setTimeout(() => {
-    panel.style.height = '';
-    window._chatExpandTimer = null;
+  panel._chatBusy = true;
+  _chatOnDone(panel, () => {
+    _chatCleanup(panel);
     const input = document.getElementById('chat-input');
     if (input) input.focus();
-  }, 550);
+  });
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
