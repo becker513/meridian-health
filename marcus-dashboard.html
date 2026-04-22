@@ -1242,32 +1242,82 @@
   .cv-chat-scroll {
     max-height: 192px;
     overflow-y: auto;
-    margin-bottom: 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    padding-bottom: 20px;
     scrollbar-width: none;
+    scroll-behavior: smooth;
+    transition: margin-bottom 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .cv-chat-scroll::-webkit-scrollbar { display: none; }
-  .cv-chat-scroll:empty { display: none; }
+  .cv-chat-scroll:empty { padding-bottom: 0; margin-bottom: 0; }
+  .cv-chat-scroll:not(:empty) { margin-bottom: 14px; }
   .cv-chat-bubble {
     font-size: 15px;
     line-height: 1.5;
     padding: 8px 12px;
     border-radius: 10px;
     max-width: 92%;
-    animation: rise 0.3s var(--ease-out) both;
   }
   .cv-chat-bubble.user {
     align-self: flex-end;
-    background: rgba(0,0,0,0.05);
-    color: #000;
+    background: #000;
+    color: #fff;
+    animation: bubble-emerge 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity;
   }
   .cv-chat-bubble.assistant {
     align-self: flex-start;
     background: transparent;
     color: #444;
     border: 1px solid var(--border);
+    animation: bubble-emerge 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition: color 320ms cubic-bezier(0.22,1,0.36,1), border-color 320ms cubic-bezier(0.22,1,0.36,1);
+    will-change: opacity;
+  }
+  @keyframes bubble-emerge {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .cv-chat-bubble.assistant.is-thinking {
+    color: var(--text-tertiary);
+    border-color: transparent;
+  }
+  .cv-chat-bubble.assistant .think {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cv-chat-bubble.assistant .think .mark {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: 0.55;
+    animation: think-breathe 1.4s ease-in-out infinite;
+  }
+  .cv-chat-bubble.assistant .think .label {
+    font-size: 13px;
+    line-height: 1.4;
+    background: linear-gradient(90deg,
+      var(--text-tertiary) 0%,
+      rgba(0,0,0,0.75) 45%,
+      var(--text-tertiary) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: think-shimmer 1.8s linear infinite;
+  }
+  @keyframes think-breathe {
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50%      { opacity: 0.9; transform: scale(1.1); }
+  }
+  @keyframes think-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
   .cv-chat-input {
     width: 100%;
@@ -1722,7 +1772,7 @@
             </button>
           </div>
           <button type="submit" class="cv-chat-send" aria-label="Send">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 11 12 4 19 11"/></svg>
           </button>
         </div>
       </form>
@@ -1731,7 +1781,7 @@
       <button class="cv-chat-collapsed-bar" onclick="expandChat()" aria-label="Ask about Marcus">
         <span class="ph">Ask about Marcus…</span>
         <span class="send-mini">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="5 11 12 4 19 11"/></svg>
         </span>
       </button>
     </div>
@@ -1785,28 +1835,52 @@ function closePanel() {
 /* ─── Chat ─── */
 const CHIP_POOL = [
   { label: 'What changed this week', q: 'What changed this week?',
+    think: 'Diffing this week vs last',
+    cites: ['Mar labs', 'CGM trend', 'Activity log'],
     a: 'A1C dropped 7.1 → 6.2 despite only 2 of 6 weeks of consistent walking. Sleep declined Tue–Thu (avg 5h 40m, work-stress pattern). Counseling referral still untouched. Refill picked up on time.' },
   { label: 'Draft a message to Marcus', q: 'Draft a message to Marcus.',
+    think: 'Drafting from visit context',
+    cites: ['Mar 18 lab panel', 'Dec 12 referral', 'Oct pattern'],
     a: '"Marcus — labs back. A1C is down to 6.2. I know the last few weeks were hard; you still moved the number. When you\'re ready, I\'d like to revisit the counseling piece — same one Dr. Williams offered. No rush. — Dr. Chen"' },
   { label: 'Show intake notes', q: 'Show intake notes.',
+    think: 'Retrieving Jan 15 intake',
+    cites: ['Jan 15 intake', 'Stressor inventory', 'Counseling stance'],
     a: 'Jan 15 intake: "I felt like a different person when I was walking every morning before practice." Stressors named — work deadlines, daughter\'s school transition. Open to counseling "in theory."' },
   { label: 'Compare to October', q: 'How does this compare to October?',
+    think: 'Pulling October pattern',
+    cites: ['Oct activity', 'Oct silence log', 'Personal note · Oct 26'],
     a: 'Same shape. October: 4 strong weeks → work deadline → 3 weeks of silence → re-engaged when you sent a personal note. He responds to humans, not portals.' },
   { label: 'What I\'d say first', q: 'What should I say in the first 60 seconds?',
+    think: 'Sequencing the opener',
+    cites: ['A1C 7.1 → 6.2', 'Visit pattern log', 'Counseling readiness'],
     a: 'Lead with the win: "Your A1C is down. You moved the number." Let it land. Then: "I want to talk about the weeks where it was hard." Don\'t open with counseling.' },
   { label: 'Counseling angle', q: 'How do I bring up counseling without losing him?',
+    think: 'Reading counseling resistance pattern',
+    cites: ['Dec 12 referral', 'Jan "in theory"', 'Feb no-action'],
     a: 'Don\'t re-pitch Dr. Williams. Try: "Last time we agreed counseling was a maybe. What\'s made it hard to schedule?" Listen first. The barrier is logistics, not willingness.' },
   { label: 'Hold or change meds', q: 'Should I change his medication?',
+    think: 'Evaluating metformin signal',
+    cites: ['Metformin 1000mg BID', 'Adherence log', 'May 1 recheck'],
     a: 'Hold. Metformin 1000mg BID is doing the job — A1C improved on partial adherence. Re-evaluate at May 1 recheck. Adding now muddies the signal.' },
   { label: 'Sleep & stress', q: 'What does the sleep data say?',
+    think: 'Cross-referencing sleep + activity',
+    cites: ['6wk sleep CGM', 'Tue–Thu dips', 'Walk drop-off'],
     a: 'Sleep tanks Tue–Thu, every period. Work deadline pattern. Walks stop on the same days. The cycle is sleep → stress → walking → A1C drift. Counseling targets the upstream variable.' },
   { label: 'Family context', q: 'What\'s going on with his family?',
+    think: 'Pulling family notes',
+    cites: ['Daughter · Jessica, 13', '7:15 soccer routine', 'Tara · supportive'],
     a: 'Daughter Jessica, 13, soccer practice 7:15am. He walks her there — that\'s the routine that works. Wife Tara supportive but not in the plan.' },
   { label: 'Lab trend', q: 'Show me his lab trend.',
+    think: 'Building lab trend',
+    cites: ['Aug A1C 7.4', 'Dec A1C 7.1', 'Mar A1C 6.2'],
     a: 'A1C: 7.4 (Aug) → 7.1 (Dec) → 6.2 (Mar). Fasting glucose: 152 → 142 → 128. Direction is right, slope is shallow. Two strong weeks per quarter is what\'s moving it.' },
   { label: 'Visit length', q: 'How long should this visit be?',
+    think: 'Budgeting visit time',
+    cites: ['25 min slot', 'Prior visit: 32 min', 'Agenda template'],
     a: '25 minutes. Open with the win (3 min), name the stress cycle (8 min), revisit counseling (10 min), close with the next milestone (4 min). Don\'t schedule a med change.' },
   { label: 'Risk flags', q: 'Any red flags I should ask about?',
+    think: 'Scanning pattern repeats',
+    cites: ['Oct pattern', 'Counseling stall × 2', '12-day silence · wk 5'],
     a: 'Three. Pattern repeats from October. Counseling stalled twice. He went silent for 12 days in week 5. The pattern is real, the silence is the variable to watch.' },
 ];
 const VISIBLE_CHIPS = 3;
@@ -1826,42 +1900,68 @@ function pickChips() {
   return picks;
 }
 
+function makeChipButton(slot) {
+  const chip = CHIP_POOL[visibleChipIdxs[slot]];
+  const btn = document.createElement('button');
+  btn.className = 'cv-chat-chip';
+  btn.textContent = chip.label;
+  btn.onclick = () => rotateChip(slot);
+  return btn;
+}
 function renderChips() {
   const el = document.getElementById('chat-chips');
   el.innerHTML = '';
-  visibleChipIdxs.forEach((poolIdx, slot) => {
-    const chip = CHIP_POOL[poolIdx];
-    const btn = document.createElement('button');
-    btn.className = 'cv-chat-chip';
-    btn.textContent = chip.label;
-    btn.onclick = () => rotateChip(slot);
-    el.appendChild(btn);
-  });
+  visibleChipIdxs.forEach((_, slot) => el.appendChild(makeChipButton(slot)));
+}
+function swapChip(slot) {
+  const el = document.getElementById('chat-chips');
+  const old = el.children[slot];
+  if (!old) return;
+  el.replaceChild(makeChipButton(slot), old);
 }
 
 function rotateChip(slot) {
   const poolIdx = visibleChipIdxs[slot];
   const chip = CHIP_POOL[poolIdx];
-  ask(chip.q, chip.a);
+  ask(chip.q, chip.a, { think: chip.think, cites: chip.cites });
   usedChipKeys.add(poolIdx);
   const exclude = new Set([...usedChipKeys, ...visibleChipIdxs]);
   const avail = CHIP_POOL.map((_,i) => i).filter(i => !exclude.has(i));
   if (avail.length === 0) {
     usedChipKeys = new Set(visibleChipIdxs);
     visibleChipIdxs = pickChips();
+    renderChips();
   } else {
     visibleChipIdxs[slot] = avail[Math.floor(Math.random()*avail.length)];
+    swapChip(slot);
   }
-  renderChips();
 }
 
 const KEYWORDS = [
-  { rx: /\b(a1c|labs?|glucose|number)\b/i, a: 'A1C 6.2% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
-  { rx: /\b(stress|sleep|anxiet)/i, a: 'Stress pattern matches October: sleep drops <6h Tue–Thu, walks stop, then 7–10 days of silence. Same trigger, same shape. Counseling is the lever.' },
-  { rx: /\b(walk|exercise|activ|step)/i, a: '3,426 avg daily steps over six weeks. Two strong weeks (5/5 each) bookended by drop-offs. The mornings before Jessica\'s practice are when he actually moves.' },
-  { rx: /\b(counsel|therap|williams)/i, a: 'Dr. Williams referral sent Dec 12. Marcus accepted in visit, never scheduled. Agent reminded twice. Suggest a warm handoff: agent books a slot, you confirm in-room.' },
-  { rx: /\b(med|metformin|prescrib|drug)/i, a: 'Metformin 1000mg BID, refill on schedule. Hold dose — A1C improvement supports it. Re-evaluate at May 1.' },
-  { rx: /\b(family|jessica|daughter|wife)/i, a: 'Daughter Jessica, 13, soccer 7:15am. Marcus walks her there — that\'s the routine that works. Wife Tara supportive, not in the plan.' },
+  { rx: /\b(a1c|labs?|glucose|number)\b/i,
+    think: 'Pulling lab trend',
+    cites: ['Mar A1C 6.2', 'Dec A1C 7.1', 'Fasting glucose log'],
+    a: 'A1C 6.2% (down from 7.1). Glucose: 142 → 128 fasting. Direction is right, driven by 2 strong weeks not consistency.' },
+  { rx: /\b(stress|sleep|anxiet)/i,
+    think: 'Cross-referencing sleep + silence',
+    cites: ['6wk sleep CGM', 'Oct pattern', 'Silence log'],
+    a: 'Stress pattern matches October: sleep drops <6h Tue–Thu, walks stop, then 7–10 days of silence. Same trigger, same shape. Counseling is the lever.' },
+  { rx: /\b(walk|exercise|activ|step)/i,
+    think: 'Reading 6wk activity data',
+    cites: ['Avg 3,426 steps', '7:15 routine', 'Drop-off Tue–Thu'],
+    a: '3,426 avg daily steps over six weeks. Two strong weeks (5/5 each) bookended by drop-offs. The mornings before Jessica\'s practice are when he actually moves.' },
+  { rx: /\b(counsel|therap|williams)/i,
+    think: 'Checking counseling referral status',
+    cites: ['Dec 12 referral', '2 agent reminders', 'Never scheduled'],
+    a: 'Dr. Williams referral sent Dec 12. Marcus accepted in visit, never scheduled. Agent reminded twice. Suggest a warm handoff: agent books a slot, you confirm in-room.' },
+  { rx: /\b(med|metformin|prescrib|drug)/i,
+    think: 'Evaluating metformin signal',
+    cites: ['Metformin 1000mg BID', 'Refill on time', 'May 1 recheck'],
+    a: 'Metformin 1000mg BID, refill on schedule. Hold dose — A1C improvement supports it. Re-evaluate at May 1.' },
+  { rx: /\b(family|jessica|daughter|wife)/i,
+    think: 'Pulling family notes',
+    cites: ['Jessica, 13 · soccer', '7:15 routine', 'Tara · supportive'],
+    a: 'Daughter Jessica, 13, soccer 7:15am. Marcus walks her there — that\'s the routine that works. Wife Tara supportive, not in the plan.' },
 ];
 
 function appendBubble(text, who) {
@@ -1871,10 +1971,59 @@ function appendBubble(text, who) {
   div.textContent = text;
   scroll.appendChild(div);
   scroll.scrollTop = scroll.scrollHeight;
+  return div;
 }
-function ask(q, a) {
+function appendThinkingBubble(label) {
+  const scroll = document.getElementById('chat-scroll');
+  const bubble = document.createElement('div');
+  bubble.className = 'cv-chat-bubble assistant is-thinking';
+  const think = document.createElement('span');
+  think.className = 'think';
+  think.innerHTML = '<span class="mark"></span><span class="label"></span>';
+  think.querySelector('.label').textContent = label;
+  bubble.appendChild(think);
+  scroll.appendChild(bubble);
+  scroll.scrollTop = scroll.scrollHeight;
+  return bubble;
+}
+function morphToAnswer(bubble, answer) {
+  const scroll = document.getElementById('chat-scroll');
+  const think = bubble.querySelector('.think');
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  if (think) {
+    think.style.transition = `opacity 240ms ${EASE}, filter 240ms ${EASE}`;
+    think.style.opacity = '0';
+    think.style.filter = 'blur(4px)';
+  }
+  setTimeout(() => {
+    bubble.style.transition = 'none';
+    bubble.style.opacity = '0';
+    bubble.style.filter = 'blur(6px)';
+    bubble.classList.remove('is-thinking');
+    bubble.textContent = answer;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        bubble.style.transition = `opacity 440ms ${EASE}, filter 440ms ${EASE}`;
+        bubble.style.opacity = '1';
+        bubble.style.filter = 'blur(0)';
+        setTimeout(() => {
+          bubble.style.transition = '';
+          bubble.style.opacity = '';
+          bubble.style.filter = '';
+        }, 460);
+      });
+    });
+    scroll.scrollTop = scroll.scrollHeight;
+  }, 240);
+}
+function ask(q, a, opts) {
+  opts = opts || {};
+  const think = opts.think || 'Scanning Marcus\'s chart';
   appendBubble(q, 'user');
-  setTimeout(() => appendBubble(a, 'assistant'), 380);
+  setTimeout(() => {
+    const bubble = appendThinkingBubble(think);
+    setTimeout(() => morphToAnswer(bubble, a), 1150 + Math.random() * 300);
+  }, 260);
 }
 function sendInput(e) {
   e.preventDefault();
@@ -1882,9 +2031,14 @@ function sendInput(e) {
   const t = input.value.trim();
   if (!t) return;
   input.value = '';
-  let reply = "Not sure — try labs, stress, the walking routine, or counseling.";
-  for (const k of KEYWORDS) { if (k.rx.test(t)) { reply = k.a; break; } }
-  ask(t, reply);
+  let match = null;
+  for (const k of KEYWORDS) { if (k.rx.test(t)) { match = k; break; } }
+  if (match) {
+    ask(t, match.a, { think: match.think, cites: match.cites });
+  } else {
+    ask(t, "Not sure — try labs, stress, the walking routine, or counseling.",
+        { think: 'Searching Marcus\'s chart', cites: [] });
+  }
 }
 function _chatCleanup(panel) {
   panel.style.height = '';
