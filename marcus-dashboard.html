@@ -47,7 +47,7 @@
     /* 4px baseline grid — all line-heights & vertical rhythm snap to multiples */
     --base: 4px;
   }
-  body { line-height: 20px; }
+  body { line-height: 20px; text-wrap: pretty; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -639,6 +639,8 @@
     vertical-align: super;
     line-height: 0;
     margin-left: 1px;
+    position: relative;
+    top: -5px;
   }
   .stat-delta {
     font-size: 12px;
